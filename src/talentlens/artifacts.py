@@ -12,7 +12,9 @@ import os
 
 from talentlens.config import ROOT
 
-ARTIFACT_PATTERNS = ["data/processed/*", "data/indexes/**", "data/extracted/*", "results/score_weights.json"]
+# The caches are included so warmed-up demo examples are instant on the server too (and use no LLM quota).
+ARTIFACT_PATTERNS = ["data/processed/*", "data/indexes/**", "data/extracted/*", "data/cache/match/*",
+                     "data/cache/llm/**", "results/score_weights.json"]
 
 
 def ensure_artifacts() -> None:

@@ -81,3 +81,36 @@ def test_agent_draft_then_human_approval(tmp_path):
         assert ok.status_code == 200 and ok.json()["status"] == "APPROVED" and ok.json()["body"] == "Edited by a human"
         assert c.post(f"/outreach/{draft['id']}/approve").status_code == 409  # can't approve twice
         assert c.post("/outreach/nope/approve").status_code == 404
+
+
+def test_rate_limiter_window():
+    from talentlens.api.main import RateLimiter
+    t = [0.0]
+    lim = RateLimiter(2, clock=lambda: t[0])
+    assert lim.allow("a")[0] and lim.allow("a")[0]
+    ok, retry = lim.allow("a")
+    assert not ok and retry > 0
+    assert lim.allow("b")[0]          # limits are per visitor
+    t[0] = 3601
+    assert lim.allow("a")[0]          # window has passed
+
+
+def test_public_demo_rate_limits_requests(tmp_path, monkeypatch):
+    monkeypatch.setenv("TALENTLENS_PUBLIC_DEMO", "1")
+    monkeypatch.setenv("RATE_LIMIT_MATCH_PER_HOUR", "2")
+    c, _ = client_with(tmp_path=tmp_path)
+    with c:
+        codes = [c.post("/match/job", json={"job_text": JOB}, headers={"X-Forwarded-For": "1.2.3.4"}).status_code for _ in range(3)]
+        other = c.post("/match/job", json={"job_text": JOB}, headers={"X-Forwarded-For": "5.6.7.8"}).status_code
+        assert c.get("/health").json()["public_demo"] is True
+    assert codes == [200, 200, 429] and other == 200
+
+
+def test_cors_origin_regex(tmp_path, monkeypatch):
+    monkeypatch.setenv("ALLOWED_ORIGIN_REGEX", r"https://talentlens-.*\.vercel\.app")
+    c, _ = client_with(tmp_path=tmp_path)
+    with c:
+        r = c.options("/match/job", headers={"Origin": "https://talentlens-git-main.vercel.app", "Access-Control-Request-Method": "POST"})
+        bad = c.options("/match/job", headers={"Origin": "https://evil.example", "Access-Control-Request-Method": "POST"})
+    assert r.headers.get("access-control-allow-origin") == "https://talentlens-git-main.vercel.app"
+    assert "access-control-allow-origin" not in bad.headers

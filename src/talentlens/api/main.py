@@ -7,6 +7,9 @@ Environment variables:
     GROQ_API_KEY            enables LLM features (job extraction for pasted text, quotes, agent)
     ALLOWED_ORIGINS         comma-separated CORS origins (e.g. https://talentlens.vercel.app)
     TALENTLENS_NO_RERANKER  set to 1 on small servers: skips the 1.1 GB cross-encoder
+    ALLOWED_ORIGIN_REGEX    optional regex for extra CORS origins (e.g. Vercel preview URLs)
+    TALENTLENS_PUBLIC_DEMO  set to 1 on a public server: per-visitor rate limits protect the LLM quota
+    RATE_LIMIT_MATCH_PER_HOUR / RATE_LIMIT_AGENT_PER_HOUR   limits per visitor (defaults 60 / 15)
 
 All models load ONCE at startup (lifespan). Repeated identical match requests are
 served from an in-memory LRU cache.
@@ -76,6 +79,30 @@ class LRUCache:
             self.data.popitem(last=False)
 
 
+class RateLimiter:
+    """Per-visitor sliding-window limit (in memory). On a public demo, anyone could otherwise
+    use up the free LLM quota; cached demo examples are still counted, but the limits are generous."""
+
+    def __init__(self, per_hour: int, clock=time.monotonic):
+        self.per_hour, self.clock, self.hits = per_hour, clock, {}
+
+    def allow(self, key: str) -> tuple[bool, int]:
+        now = self.clock()
+        recent = [t for t in self.hits.get(key, []) if now - t < 3600]
+        if len(recent) >= self.per_hour:
+            self.hits[key] = recent
+            return False, int(3600 - (now - recent[0])) + 1
+        recent.append(now)
+        self.hits[key] = recent
+        return True, 0
+
+
+def client_key(request: Request) -> str:
+    # Behind a proxy (Hugging Face Spaces, Vercel, Render) the real client is the first X-Forwarded-For entry.
+    forwarded = request.headers.get("x-forwarded-for", "")
+    return forwarded.split(",")[0].strip() or (request.client.host if request.client else "unknown")
+
+
 def _default_components():
     from dotenv import load_dotenv
 
@@ -108,7 +135,20 @@ def create_app(components=None) -> FastAPI:
     app = FastAPI(title="TalentLens API", version="0.1.0", lifespan=lifespan,
                   description="Explainable job matching and a recruiter agent with human approval.")
     origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
-    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST"], allow_headers=["*"])
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_origin_regex=os.environ.get("ALLOWED_ORIGIN_REGEX") or None,
+                       allow_methods=["GET", "POST"], allow_headers=["*"])
+
+    public = os.environ.get("TALENTLENS_PUBLIC_DEMO") == "1"
+    limits = {"match": RateLimiter(int(os.environ.get("RATE_LIMIT_MATCH_PER_HOUR", "60"))),
+              "agent": RateLimiter(int(os.environ.get("RATE_LIMIT_AGENT_PER_HOUR", "15")))}
+
+    def check_rate(request: Request, kind: str) -> None:
+        if not public:
+            return
+        ok, retry = limits[kind].allow(client_key(request))
+        if not ok:
+            raise HTTPException(429, {"error": "rate limit", "detail": f"This public demo allows {limits[kind].per_hour} "
+                                      f"{kind} requests per hour per visitor. Try again in {retry // 60 + 1} min."})
 
     @app.exception_handler(HTTPException)
     async def http_error(_: Request, exc: HTTPException):
@@ -126,7 +166,7 @@ def create_app(components=None) -> FastAPI:
         svc = service(request)
         reranker = getattr(svc, "reranker", None)
         cache = request.app.state.cache
-        return {"status": "ok", "startup_seconds": request.app.state.startup_seconds,
+        return {"status": "ok", "public_demo": public, "startup_seconds": request.app.state.startup_seconds,
                 "reranker": getattr(reranker, "model_name", None), "llm_enabled": request.app.state.llm is not None,
                 "resumes": len(svc.resumes), "jobs": len(svc.jobs),
                 "resumes_with_structured_data": len(getattr(svc, "resume_struct", {})),
@@ -134,6 +174,7 @@ def create_app(components=None) -> FastAPI:
 
     @app.post("/match/job")
     def match_job(body: MatchJobRequest, request: Request) -> dict:
+        check_rate(request, "match")
         svc, cache = service(request), request.app.state.cache
         key = cache.key("job", body.job_text, body.top_k, body.with_quotes)
         if (hit := cache.get(key)) is not None:
@@ -147,6 +188,7 @@ def create_app(components=None) -> FastAPI:
 
     @app.post("/match/resume")
     def match_resume(body: MatchResumeRequest, request: Request) -> dict:
+        check_rate(request, "match")
         svc, cache = service(request), request.app.state.cache
         key = cache.key("resume", body.resume_text, body.top_k)
         if (hit := cache.get(key)) is not None:
@@ -160,6 +202,7 @@ def create_app(components=None) -> FastAPI:
 
     @app.post("/agent")
     def agent(body: AgentRequest, request: Request) -> dict:
+        check_rate(request, "agent")
         svc, llm, cfg = service(request), request.app.state.llm, request.app.state.cfg
         if llm is None:
             raise HTTPException(503, {"error": "agent unavailable", "detail": "GROQ_API_KEY is not set on the server"})

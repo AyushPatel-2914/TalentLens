@@ -20,8 +20,8 @@ Every number in this README is produced by a script and saved under [`results/`]
 | 6. Explainable matches | ✅ | ✅ | 🟡 quote verification works live | labels for weight tuning; quote-failure run |
 | 7. Recruiter agent | ✅ | ✅ | 🟡 1 of 20 tasks run (smoke test, passed); 3 demo tasks work | full 20-task run (spread over free-tier days) |
 | 8. Fairness check | ✅ | ✅ | ✅ [`fairness_report.md`](results/fairness_report.md) | re-run with the fine-tuned re-ranker |
-| 9. API + frontend + tests | ✅ | ✅ 139 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
-| 10. Docker, CI, deploy | ✅ | CI config | – | GitHub repo, hosting accounts |
+| 9. API + frontend + tests | ✅ | ✅ 142 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
+| 10. Docker, CI, deploy | ✅ | CI + local Docker build | – | follow [docs/DEPLOY.md](docs/DEPLOY.md) (your HF + Vercel accounts) |
 
 ---
 
@@ -434,7 +434,7 @@ python scripts/07_eval_agent.py
 python scripts/08_fairness.py
 
 # Tests
-pytest                                                    # 139 tests, no network/models/keys needed
+pytest                                                    # 142 tests, no network/models/keys needed
 
 # Run the app
 uvicorn talentlens.api.main:app --port 8000              # http://localhost:8000/docs
@@ -446,11 +446,19 @@ python scripts/07_agent.py "Find 3 chefs with food safety and draft outreach for
 
 ## 9. Deployment
 
-- **Backend:** [`Dockerfile`](Dockerfile) (CPU-only PyTorch; the embedding model is downloaded at build time). `data/` is never in git, so on a fresh server set `TALENTLENS_ARTIFACTS_REPO` + `HF_TOKEN` and the API downloads the parquet/index files from a **private** Hugging Face dataset at startup ([`scripts/publish_artifacts.py`](scripts/publish_artifacts.py) uploads them).
-  - Memory: about 0.8 GB without the re-ranker, more with it. Render's free instance (512 MB) is too small; [`render.yaml`](render.yaml) uses the Standard plan. A Hugging Face Docker Space (free CPU, 16 GB RAM) runs the same image.
-  - `TALENTLENS_NO_RERANKER=1` skips the 1.1 GB cross-encoder on small servers.
-- **Frontend:** Vercel, with `NEXT_PUBLIC_API_URL` pointing at the backend.
-- **CORS & secrets:** `ALLOWED_ORIGINS`, `GROQ_API_KEY` and `HF_TOKEN` come from environment variables only. `.env` is git-ignored.
+Step-by-step guide: **[docs/DEPLOY.md](docs/DEPLOY.md)** (free; about 1 hour).
+
+| Part | Where | Notes |
+|---|---|---|
+| Frontend | **Vercel** | Root directory `frontend`, env `NEXT_PUBLIC_API_URL` |
+| Backend | **Hugging Face Docker Space** (free CPU, 16 GB RAM) | [`deploy/hf-space/`](deploy/hf-space/) builds the image from this GitHub repo; both models are baked into the image |
+| Data, indexes, caches | **Private** Hugging Face dataset | Downloaded at startup (`TALENTLENS_ARTIFACTS_REPO` + `HF_TOKEN`); never in git or in the image |
+
+- **Why not Render's free tier?** 512 MB RAM; the backend needs ~0.8 GB without the re-ranker. [`render.yaml`](render.yaml) is kept for a paid instance.
+- **Public-demo protection:** with `TALENTLENS_PUBLIC_DEMO=1` every visitor is rate-limited (60 match / 15 agent requests per hour, by `X-Forwarded-For`), so nobody can use up the free LLM quota. The warmed-up caches ship with the data, so the demo examples are instant on the server and use no quota.
+- **Cold starts:** free Spaces sleep when idle; the frontend shows "backend is waking up" and retries automatically.
+- **CORS & secrets:** `ALLOWED_ORIGINS` / `ALLOWED_ORIGIN_REGEX`, `GROQ_API_KEY` and `HF_TOKEN` come from environment variables only; `.env` is git-ignored.
+- **Local container:** `docker build -t talentlens .` then `docker run -p 7860:7860 --env-file .env -v "%cd%\data:/home/user/app/data" talentlens`.
 - **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs pytest and a frontend type-check + build on every push.
 
 ---
@@ -475,7 +483,7 @@ src/talentlens/
 scripts/          numbered entry points (run order in section 8)
 notebooks/        finetune_reranker.py (source) → .ipynb (Colab)
 frontend/         Next.js app
-tests/            139 pytest tests
+tests/            142 pytest tests
 results/          every reported number (committed)
 data/             raw/processed data, caches, labels, indexes (NOT committed)
 ```
