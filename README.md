@@ -6,6 +6,20 @@ TalentLens takes a job description and returns a ranked shortlist of candidates.
 
 Every number in this README is produced by a script and saved under [`results/`](results/). Nothing is typed in by hand. Where a result does not exist yet, the table says so.
 
+**Live demo:** https://talent-lens-khaki.vercel.app. The backend runs on demand (see [section 9](#9-deployment)), so ask for a fresh link if the page says the backend is offline.
+
+**In one minute:**
+
+| | |
+|---|---|
+| **Input** | A job description (or a resume, for the reverse direction), or a recruiter request in plain English |
+| **Output** | Ranked candidates, each with a score breakdown, matched and missing skills, experience fit and word-for-word evidence quotes |
+| **Data** | 2,481 public Kaggle resumes (24 occupations) and 3,000 LinkedIn job postings, with contact details removed |
+| **Pipeline** | BM25 + dense embeddings → Reciprocal Rank Fusion → cross-encoder re-ranker → requirement checks → verified explanations |
+| **Agent** | A hand-written tool-calling loop (5 tools, max 8 steps); outreach drafts wait for human approval |
+| **Checks** | Retrieval metrics (Recall@100, nDCG@10, MRR), LLM-judge agreement (Cohen's κ), extraction P/R/F1, counterfactual fairness and a 20-task agent evaluation; 143 tests run in CI |
+| **Cost** | Runs entirely on free tiers: Groq's free LLM API, CPU models, Vercel, a Cloudflare tunnel and free Colab for fine-tuning |
+
 ---
 
 ## Status
@@ -20,8 +34,8 @@ Every number in this README is produced by a script and saved under [`results/`]
 | 6. Explainable matches | ✅ | ✅ | 🟡 quote verification works live | labels for weight tuning; quote-failure run |
 | 7. Recruiter agent | ✅ | ✅ | 🟡 1 of 20 tasks run (smoke test, passed); 3 demo tasks work | full 20-task run (spread over free-tier days) |
 | 8. Fairness check | ✅ | ✅ | ✅ [`fairness_report.md`](results/fairness_report.md) | re-run with the fine-tuned re-ranker |
-| 9. API + frontend + tests | ✅ | ✅ 142 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
-| 10. Docker, CI, deploy | ✅ | CI + local Docker build | – | follow [docs/DEPLOY.md](docs/DEPLOY.md) (your HF + Vercel accounts) |
+| 9. API + frontend + tests | ✅ | ✅ 143 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
+| 10. Docker, CI, deploy | ✅ | CI + Docker image tested locally | ✅ frontend on Vercel; backend through a Cloudflare tunnel ([docs/DEPLOY.md](docs/DEPLOY.md)) | always-on backend (paid option ready) |
 
 ---
 
@@ -33,6 +47,8 @@ Every number in this README is produced by a script and saved under [`results/`]
 4. [How it works, step by step](#4-how-it-works-step-by-step)
 5. [How the metrics work](#5-how-the-metrics-work)
 6. [Results](#6-results)
+   - [Example output](#example-output)
+   - [Demo](#demo)
 7. [API](#7-api)
 8. [Running it](#8-running-it)
 9. [Deployment](#9-deployment)
@@ -41,6 +57,9 @@ Every number in this README is produced by a script and saved under [`results/`]
 12. [Scaling to 10 million candidates](#12-scaling-to-10-million-candidates)
 13. [Data licences and ethics](#13-data-licences-and-ethics)
 14. [Glossary](#14-glossary)
+15. [Configuration reference](#15-configuration-reference)
+16. [Design decisions](#16-design-decisions)
+17. [Troubleshooting](#17-troubleshooting)
 
 ---
 
@@ -113,7 +132,26 @@ flowchart LR
     T -.calls.-> Online
 ```
 
-**Stack:** Python, pandas, rank_bm25 (+ a numpy inverted index), sentence-transformers, FAISS, transformers (BAAI/bge-reranker-base), Groq API (`openai/gpt-oss-20b` for bulk extraction, `openai/gpt-oss-120b` for the judge and the agent; Llama 3.3 was retired from Groq before this project started), Pydantic, FastAPI, Next.js 15, pytest, Docker, GitHub Actions, Hugging Face Hub, Google Colab.
+**Stack:** Python, pandas, rank_bm25 (+ a numpy inverted index), sentence-transformers, FAISS, transformers (BAAI/bge-reranker-base), Groq API, Pydantic, FastAPI, Next.js 15 / React 19, pytest, Docker, GitHub Actions, Vercel, Cloudflare Tunnel, Hugging Face Hub, Google Colab.
+
+**LLMs (all on Groq's free tier):**
+
+| Job | Model | Fallbacks |
+|---|---|---|
+| Bulk extraction | `openai/gpt-oss-20b` | – |
+| Gold-set extraction, LLM judge | `openai/gpt-oss-120b` | – |
+| Recruiter agent | `qwen/qwen3.8-27b` | `gpt-oss-120b`, then `gpt-oss-20b` (same conversation continues) |
+| Evidence quotes | `openai/gpt-oss-20b` | `gpt-oss-120b`, `qwen3.8-27b`; without any LLM, matching still works and says quotes are unavailable |
+
+Each model has its own daily quota on the free tier (about 200k tokens per day), so spreading jobs across models keeps the demo working. Llama 3.3 was retired from Groq before this project started.
+
+**Serving path in one request** (`POST /match/job`):
+1. Read the job's requirements: LLM extraction, merged with rule-based parsing and cleaned of generic words like "communication".
+2. Retrieve the top 100 with BM25 and dense search, fused by RRF.
+3. Re-rank the top 30 with the cross-encoder.
+4. Compute the final score from the re-ranker, skill coverage and experience fit.
+5. Ask the LLM for evidence quotes for the top 3, and keep only the quotes code finds in the resume.
+6. Cache the result: an in-memory LRU and a disk cache keyed by a logic version, so a code change invalidates old answers. Incomplete results (for example, quotes missing because of quota) are never cached.
 
 ---
 
@@ -245,7 +283,7 @@ A hand-written loop ([`loop.py`](src/talentlens/agent/loop.py)), with no LangCha
 sequenceDiagram
     participant R as Recruiter
     participant A as Agent loop
-    participant L as LLM (gpt-oss-120b)
+    participant L as LLM (qwen3.8-27b, with fallbacks)
     participant T as Tools
     R->>A: "Find 5 X with Y, compare top 3, draft outreach for the best"
     loop until a text answer, or max 8 steps
@@ -267,7 +305,7 @@ sequenceDiagram
 | `explain_match(candidate_id, job_id?)` | Stage 6 explanation (+ verified quotes) |
 | `draft_outreach(candidate_id, job_id?)` | Writes an email from facts only; saved as `PENDING_APPROVAL` |
 
-**Reliability:** an 8-step hard limit; invalid arguments, unknown IDs and tool exceptions go back to the LLM as error messages (the loop never crashes); every step is logged (tool, arguments, result, tokens, latency); tool results are trimmed so each request stays under the provider's per-request limit.
+**Reliability:** an 8-step hard limit; if a model hits its daily quota, the same conversation continues on the next model; tool schemas are simplified for providers that reject complex JSON Schema, and a rejected tool call gets one retry with a hint; invalid arguments, unknown IDs and tool exceptions go back to the LLM as error messages (the loop never crashes); every step is logged (tool, arguments, result, tokens, latency); tool results are trimmed so each request stays under the provider's per-request limit.
 
 **Human approval:** there is **no tool** that approves or sends. Only `POST /outreach/{id}/approve`, which the UI's Approve button calls, changes a draft to `APPROVED`, and a draft can't be decided twice (HTTP 409).
 
@@ -376,11 +414,39 @@ Free and deterministic, used for all 2,481 resumes (the free LLM tier can't extr
 | Resumes | 2,481 | 8,773 | 1.2 s | 1,330 s |
 | Jobs | 3,000 | 7,157 | 2.9 s | 1,011 s |
 
----
+### Example output
 
-## Demo
+A real response from `POST /match/job` (Docker image, laptop CPU, empty cache, `top_k: 3`), shortened. The job text was *"Staff accountant needed. QuickBooks, month-end close, reconciliations. 3+ years of experience."*
 
-Double-click **`start_demo.cmd`** (or `start_demo.cmd warmup` before an interview). It starts the API and the frontend and opens http://localhost:3000. The 5-minute walkthrough, talking points and numbers to quote are in [`docs/DEMO.md`](docs/DEMO.md).
+**Requirements read from the job:** title "Staff accountant"; required skills QuickBooks, month-end close and reconciliations; at least 3 years; seniority mid.
+
+| Rank | Resume | Re-ranker logit | Skills matched | Experience | Final score |
+|---|---|---|---|---|---|
+| 1 | R14491649 | 3.89 | 3 / 3 | has 20 years, needs 3+ | **0.988** |
+| 2 | R28298773 | 6.88 | 2 / 3 (missing month-end close) | has 13.2 years, needs 3+ | **0.899** |
+| 3 | R10674770 | 5.15 | 2 / 3 (missing month-end close) | has 7.9 years, needs 3+ | **0.897** |
+
+Timings: retrieval 1.6 s, re-ranking and explanations 14.2 s, total 15.9 s. Cached examples return instantly.
+
+The re-ranker alone preferred #2. The final score puts #1 first because it covers every required skill: 0.6 × 0.980 + 0.3 × 1.0 + 0.1 × 1.0 = 0.988. Each skill also says how it was matched: `extracted` (from the resume's structured fields) or `resume_text` (found in the raw text).
+
+This is a single illustrative response, not an evaluation metric; the metrics are in sections 6.1–6.10.
+
+### Demo
+
+**Local:** double-click **`start_demo.cmd`** (or `start_demo.cmd warmup` before an interview). It starts the API and the frontend and opens http://localhost:3000.
+
+**Public link:** double-click **`start_public_demo.cmd`**. It starts the API in public-demo mode, opens a free Cloudflare tunnel and prints a link such as `https://talent-lens-khaki.vercel.app/?api=https://<random>.trycloudflare.com` (also copied to the clipboard). The link works while the laptop and both windows stay open. A new link is printed on every start.
+
+The 5-minute walkthrough, talking points and numbers to quote are in [`docs/DEMO.md`](docs/DEMO.md).
+
+**What to try in the app:**
+
+| Tab | Try | You'll see |
+|---|---|---|
+| Job → candidates | Pick a sample (e.g. **Staff Accountant**) → *Find candidates* | Ranked candidates, score breakdown, matched/missing skills, verified quotes |
+| Resume → jobs | Pick a sample resume | Best-fit jobs, ranked by the same pipeline in reverse |
+| Recruiter agent | *"Find 3 chefs with food safety and draft outreach for the best"* | Each tool call step by step, then a draft marked `PENDING_APPROVAL`; click **Approve** or **Reject** |
 
 The demo is built for the free Groq tier:
 - every example's results are cached on disk after one warm-up;
@@ -401,7 +467,26 @@ FastAPI, with interactive docs at `/docs`. All models load **once** at startup; 
 | `POST` | `/outreach/{id}/approve` | `{"edited_body": "optional"}` | the draft, now `APPROVED` (human action only) |
 | `POST` | `/outreach/{id}/reject` | – | the draft, now `REJECTED` |
 
-Errors are JSON `{"error": ..., "detail": ...}`: 422 invalid input, 404 unknown draft, 409 already decided, 429 LLM quota exhausted, 502 LLM provider error, 503 not ready / feature unavailable.
+Errors are JSON `{"error": ..., "detail": ...}`: 422 invalid input, 404 unknown draft, 409 already decided, 429 LLM quota exhausted or visitor rate limit reached, 502 LLM provider error, 503 not ready / feature unavailable.
+
+**Try it from the command line:**
+```cmd
+curl http://localhost:8000/health
+curl -X POST http://localhost:8000/match/job -H "Content-Type: application/json" -d "{\"job_text\": \"Staff accountant needed. QuickBooks, month-end close, reconciliations. 3+ years of experience.\", \"top_k\": 3, \"with_quotes\": true}"
+```
+
+**Environment variables** (all optional except the Groq key):
+
+| Variable | Purpose |
+|---|---|
+| `GROQ_API_KEY` | LLM access; without it, matching still works but extraction of new job texts, quotes and the agent are off |
+| `TALENTLENS_PUBLIC_DEMO=1` | Per-visitor rate limits (`RATE_LIMIT_MATCH_PER_HOUR`, default 60; `RATE_LIMIT_AGENT_PER_HOUR`, default 15) |
+| `ALLOWED_ORIGINS`, `ALLOWED_ORIGIN_REGEX` | CORS: which websites may call the API |
+| `TALENTLENS_NO_RERANKER=1` | Skip the cross-encoder (small machines); retrieval rank is used instead |
+| `TALENTLENS_ARTIFACTS_REPO`, `HF_TOKEN` | Download data, indexes and caches from a private Hugging Face dataset at startup (cloud servers) |
+| `TALENTLENS_ROOT` | Project root inside a container |
+| `PUBLIC_FRONTEND_URL` | Used by `start_public_demo` to print the share link |
+| `NEXT_PUBLIC_API_URL` (frontend) | Default backend URL; a `?api=` link overrides it |
 
 ---
 
@@ -434,13 +519,22 @@ python scripts/07_eval_agent.py
 python scripts/08_fairness.py
 
 # Tests
-pytest                                                    # 142 tests, no network/models/keys needed
+pytest                                                    # 143 tests, no network/models/keys needed
 
 # Run the app
-uvicorn talentlens.api.main:app --port 8000              # http://localhost:8000/docs
+start_demo.cmd                                            # Windows: API + frontend + browser in one click
+uvicorn talentlens.api.main:app --port 8000              # or by hand: http://localhost:8000/docs
 cd frontend && npm install && npm run dev                # http://localhost:3000
+python scripts/warmup_demo.py                             # pre-compute the demo examples (cached on disk)
 python scripts/07_agent.py "Find 3 chefs with food safety and draft outreach for the best"   # agent in the terminal
+
+# Share it publicly (Vercel frontend + this laptop as backend)
+start_public_demo.cmd                                     # prints https://<vercel-app>/?api=https://<random>.trycloudflare.com
 ```
+
+**Requirements:** Python 3.12, Node.js 22 (frontend), about 4 GB of free RAM, and a free Groq API key. Docker is optional. The two Kaggle datasets go in `data/raw/` (see `scripts/01_prepare_data.py` for the file names).
+
+**Expected times on a laptop CPU:** rule-based extraction about 3 minutes; embedding both corpora about 39 minutes, done once ([`index_build.json`](results/index_build.json)); API startup 20–60 seconds; a new job query about 16 seconds (see [Example output](#example-output)); a cached query under 1 second.
 
 ---
 
@@ -459,7 +553,7 @@ Step-by-step guide: **[docs/DEPLOY.md](docs/DEPLOY.md)** (free; no card needed).
 - **Public-demo protection:** with `TALENTLENS_PUBLIC_DEMO=1` every visitor is rate-limited (60 match / 15 agent requests per hour, keyed by `CF-Connecting-IP` or `X-Forwarded-For`), so nobody can use up the free LLM quota. Warmed-up caches make the demo examples instant and quota-free.
 - **Backend offline:** the frontend says the backend runs on demand, links to GitHub and keeps retrying.
 - **CORS & secrets:** `ALLOWED_ORIGINS` / `ALLOWED_ORIGIN_REGEX`, `GROQ_API_KEY` and `HF_TOKEN` come from environment variables only; `.env` is git-ignored.
-- **Local container:** `docker build -t talentlens .` then `docker run -p 7860:7860 --env-file .env -v "%cd%\data:/home/user/app/data" talentlens`.
+- **Local container:** `docker build -t talentlens .` builds a 4.85 GB image: CPU-only PyTorch, with both models baked in and no data inside. To run it with your data: `docker run -p 7860:7860 --env-file .env -v "%cd%\data:/home/user/app/data" talentlens`. If the project path contains a space, Docker Desktop's bind mount can fail; then copy the data in with `tar` (see [section 17](#17-troubleshooting)). Tested locally: it starts in about 24 s and loads 2,481 resumes and 3,000 jobs.
 - **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs pytest and a frontend type-check + build on every push.
 
 ---
@@ -479,14 +573,24 @@ src/talentlens/
   agent/          Stage 7: tools, loop, outreach approval, task checks
   fairness/       Stage 8: counterfactual variants, redaction, metrics
   eval/           metrics (Recall, MRR, nDCG, extraction P/R/F1), qrels, ranking evaluator
-  api/            Stage 9: FastAPI app
+  api/            Stage 9: FastAPI app (rate limits, CORS, caches)
   service.py      the full matching pipeline used by API, agent and fairness test
-scripts/          numbered entry points (run order in section 8)
+  artifacts.py    downloads data/indexes/caches from a private HF dataset on cloud servers
+scripts/          numbered entry points (run order in section 8), plus:
+  start_demo.ps1          local demo (API + frontend)
+  start_public_demo.ps1   public demo (API + Cloudflare tunnel + share link)
+  warmup_demo.py          pre-computes the demo examples
+  publish_artifacts.py    uploads data to a private HF dataset (paid always-on option)
 notebooks/        finetune_reranker.py (source) → .ipynb (Colab)
-frontend/         Next.js app
-tests/            142 pytest tests
+frontend/         Next.js app: app/ (page), components/ (MatchPanel, ResultCard, AgentPanel, BackendStatus), lib/ (API client, samples)
+deploy/hf-space/  Dockerfile + README for a Hugging Face Docker Space
+docs/             DEMO.md (interview walkthrough), DEPLOY.md (deployment guide)
+tests/            143 pytest tests
 results/          every reported number (committed)
 data/             raw/processed data, caches, labels, indexes (NOT committed)
+Dockerfile        backend image (uid 1000, port 7860)
+start_demo.cmd, start_public_demo.cmd   one-click launchers for Windows
+.github/workflows/ci.yml                tests + frontend build on every push
 ```
 
 ---
@@ -548,3 +652,62 @@ The key point: the cross-encoder's cost depends on **top-k**, not on the pool si
 | **Cohen's κ** | Agreement between two labellers corrected for chance (weighted: ordered labels) |
 | **nDCG@10 / MRR / Recall@100** | See section 5 |
 | **Counterfactual test** | Change one attribute, hold everything else equal, observe |
+
+---
+
+## 15. Configuration reference
+
+Everything tunable lives in [`configs/config.yaml`](configs/config.yaml); code reads it rather than hard-coding values.
+
+| Setting | Value | Why |
+|---|---|---|
+| `retrieval.depth` | 100 | Candidates returned by stage one |
+| `retrieval.rrf_k` | 60 | Standard RRF constant (Cormack et al., 2009); tuned on validation with `--sweep-k` |
+| `retrieval.dense.model` | `BAAI/bge-small-en-v1.5` | 384 dimensions, 33M parameters, fast on CPU |
+| `retrieval.dense.chunk_words` / `chunk_overlap` | 300 / 50 | Fits the 512-token limit; overlap keeps sentences whole |
+| `rerank.base_model` | `BAAI/bge-reranker-base` | Strong open cross-encoder that runs on CPU |
+| `rerank.depth` / `interactive_depth` | 100 / 30 | Full depth for evaluation; 30 for the API (about 0.5 s per pair on CPU) |
+| `rerank.finetuned_model` | `null` | Set to the Hugging Face Hub id after Stage 5 |
+| `scoring.weights` | re-ranker 0.6, required skills 0.3, experience 0.1 | Defaults; `06_explanations.py --tune` grid-searches them on validation |
+| `agent.model` / `fallback_models` | `qwen/qwen3.8-27b` / `gpt-oss-120b`, `gpt-oss-20b` | Per-model free quotas |
+| `agent.max_steps` | 8 | Hard stop on loops and cost |
+| `llm.max_input_chars` / `max_output_tokens` | 12,000 / 4,096 | Keeps each request within the free tier's per-minute token limit |
+
+Other config files: [`skill_aliases.yaml`](configs/skill_aliases.yaml) (skill spellings), [`agent_tasks.yaml`](configs/agent_tasks.yaml) (the 20 agent test tasks), [`fairness_names.yaml`](configs/fairness_names.yaml) (name groups for the fairness test).
+
+---
+
+## 16. Design decisions
+
+| Decision | Alternative | Why this one |
+|---|---|---|
+| Two stages: retrieve, then re-rank | Cross-encoder over every resume | Re-ranking cost grows with top-k, not with the pool; stage one stays fast at any size |
+| Hybrid with RRF | BM25 only, or dense only | Each covers the other's blind spot (exact terms vs meaning); RRF needs no score calibration |
+| Chunked embeddings with max-pooling | One embedding per resume | The model reads at most 512 tokens; resumes average about 800 words |
+| Final score = re-ranker + skills + experience | Re-ranker score alone | The re-ranker has no notion of "mandatory"; requirement checks are what a recruiter verifies, and each part is visible |
+| Quotes verified by code | Trust the LLM's quotes | LLMs invent quotes; an exact-substring check is cheap and catches them (1 of 9 in a live test) |
+| Hand-written agent loop | LangChain or another framework | Every step is visible and testable; fallbacks, retries and step limits are under direct control |
+| No approve tool for the agent | Let the agent send outreach | Human-in-the-loop by construction, not by prompt |
+| Split by job | Random split of pairs | Prevents leakage; tests ranking for unseen jobs |
+| LLM judge gated on κ ≥ 0.6 | Use LLM labels directly | The judge has to earn trust against human labels first |
+| Rule-based extraction for the full corpus | LLM for every resume | Free and deterministic; the free LLM tier can't cover 2,481 resumes per day |
+| Cache keyed by content + logic version | No cache, or a time-based cache | Free-tier quota; a code change automatically invalidates stale answers |
+| Laptop backend + Cloudflare tunnel | Free cloud hosting | The backend needs about 3 GB of RAM; free container tiers offer 512 MB, and HF Docker Spaces now need a paid plan |
+
+---
+
+## 17. Troubleshooting
+
+| Problem | Cause | Fix |
+|---|---|---|
+| `start_demo.cmd` closes immediately | `.venv` or Node is missing | Run it from a terminal to read the error; set up as in section 8 |
+| Page says "Failed to fetch" or "backend isn't reachable" | API not started yet, or the tunnel is closed | Wait for `Application startup complete`; for the public link, run `start_public_demo.cmd` and use the newly printed link |
+| `curl: (56) Recv failure` right after starting | Models are still loading | Wait 20–60 s and retry |
+| `LLM quota exhausted` (429) | The free Groq daily cap was reached on every model | Cached examples still work; quotas reset daily |
+| `rate limit` (429) on the public demo | That visitor hit the per-hour limit | Wait, or raise `RATE_LIMIT_*_PER_HOUR` |
+| CORS error in the browser console | The frontend's URL isn't allowed | Set `PUBLIC_FRONTEND_URL` in `.env`, or `ALLOWED_ORIGINS`, and restart the API |
+| `A local API ... is already running on port 8000` | `start_demo` is still running | Close its API window, then start the public demo |
+| Docker: `mkdir /run/desktop/mnt/host/c/...: file exists` | Docker Desktop's bind mount with this path | Copy the data in instead: `docker run -d --name tl -p 7860:7860 --env-file .env --entrypoint sleep talentlens infinity`, then `tar -cf - data \| docker exec -i tl tar -xf - -C /home/user/app`, then `docker exec -d tl sh -c "python -m uvicorn talentlens.api.main:app --host 0.0.0.0 --port 7860 > /tmp/api.log 2>&1"` |
+| Hugging Face model download hangs at 0 bytes | The Xet transfer backend | Set `HF_HUB_DISABLE_XET=1` (the scripts and Docker image already do) |
+| PowerShell: "running scripts is disabled" | Windows execution policy | Use the `.cmd` launchers; they pass `-ExecutionPolicy Bypass` for that run only |
+| Evidence quotes say "heuristic (LLM unavailable)" | No LLM quota left for quotes | The ranking is unaffected; quotes return when quota resets |

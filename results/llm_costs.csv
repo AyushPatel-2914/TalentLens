@@ -641,3 +641,10 @@ timestamp,tag,model,cached,input_tokens,output_tokens,latency_ms,cost_usd
 2026-11-17T12:45:17+00:00,quotes,openai/gpt-oss-20b,False,1441,128,638.5,0.00014647
 2026-11-17T12:45:18+00:00,quotes,openai/gpt-oss-20b,False,1302,93,670.7,0.00012555
 2026-11-17T12:45:18+00:00,quotes,openai/gpt-oss-20b,False,1280,106,489.6,0.0001278
+2026-11-17T13:26:35+00:00,agent,qwen/qwen3.8-27b,True,1041,44,0.0,0.0
+2026-11-17T13:26:35+00:00,agent,qwen/qwen3.8-27b,True,1801,60,0.0,0.0
+2026-11-17T13:26:35+00:00,extract_job,openai/gpt-oss-20b,True,369,151,0.0,0.0
+2026-11-17T13:26:37+00:00,agent,qwen/qwen3.8-27b,True,2090,37,0.0,0.0
+2026-11-17T13:26:37+00:00,extract_job,openai/gpt-oss-20b,True,369,151,0.0,0.0
+2026-11-17T13:26:38+00:00,draft,qwen/qwen3.8-27b,True,128,154,0.0,0.0
+2026-11-17T13:26:39+00:00,agent,qwen/qwen3.8-27b,False,2335,361,1539.1,0.0
