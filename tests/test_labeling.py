@@ -84,3 +84,18 @@ def test_judge_parses_and_repairs():
     assert out.label == 1
     out, err = judge_pair(FakeClient(["bad", "bad"]), "m", "job", "cv", 100, 100)
     assert out is None and err
+
+
+def test_category_qrels_marks_same_category_resumes(tmp_path):
+    from talentlens.eval.qrels import category_qrels
+    processed = tmp_path / "processed"
+    processed.mkdir()
+    pd.DataFrame({"job_id": ["J1", "J2", "J3"], "matched_category": ["ACCOUNTANT", "CHEF", "ACCOUNTANT"]}
+                 ).to_parquet(processed / "jobs.parquet")
+    pd.DataFrame({"resume_id": ["R1", "R2", "R3"], "category": ["ACCOUNTANT", "ACCOUNTANT", "CHEF"]}
+                 ).to_parquet(processed / "resumes.parquet")
+    splits = tmp_path / "splits.json"
+    splits.write_text(json.dumps({"J1": "test", "J2": "test", "J3": "train"}))
+    cfg = {"paths": {"processed_dir": str(processed)}, "labels": {"splits_file": str(splits)}}
+    q = category_qrels(cfg, "test")
+    assert q == {"J1": {"R1": 1, "R2": 1}, "J2": {"R3": 1}}   # J3 is train: excluded

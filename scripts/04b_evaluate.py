@@ -39,7 +39,8 @@ def rankers(retrievers: dict, depth: int) -> dict:
 
 
 def sweep_k(cfg, retrievers, queries) -> None:
-    qrels = load_qrels(cfg, "combined" if "combined" in available_sources(cfg) else "human", "validation")
+    real = available_sources(cfg)
+    qrels = load_qrels(cfg, "combined" if "combined" in real else ("human" if real else "category"), "validation")
     if not qrels:
         print("No validation labels yet (needs judge labels): skipping the k sweep.")
         return
@@ -81,7 +82,7 @@ def main() -> None:
     p.add_argument("--sweep-k", action="store_true")
     args = p.parse_args()
     cfg = load_config()
-    sources = available_sources(cfg)
+    sources = available_sources(cfg, proxy=True)
     if not sources:
         raise SystemExit("No labels yet. Label pairs (scripts/03b_label_pairs.py) and/or run the judge first.")
 
@@ -106,7 +107,7 @@ def main() -> None:
     pd.DataFrame(summaries).to_csv(results / "retrieval.csv", index=False)
     md = ["# First-stage retrieval (test split)", "",
           f"Generated {datetime.now(timezone.utc).isoformat(timespec='seconds')} by scripts/04b_evaluate.py. "
-          f"RRF k = {cfg['retrieval']['rrf_k']}. Relevant = label >= 1. Latency = CPU, model loaded, per query.", "",
+          f"RRF k = {cfg['retrieval']['rrf_k']}. Relevant = label >= 1. Label source `category` is a PROXY (no human input): a resume counts as relevant when its occupation category equals the job's, so Recall@100 is capped when a category has more than 100 resumes. Latency = CPU, model loaded, per query.", "",
           markdown_table(summaries, COLUMNS)]
     (results / "retrieval.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     if example_md:

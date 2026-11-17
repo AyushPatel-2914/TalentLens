@@ -29,10 +29,10 @@ Every number in this README is produced by a script and saved under [`results/`]
 | 1. Data loading & cleaning | ✅ | ✅ | ✅ [`data_stats.json`](results/data_stats.json) | – |
 | 2. Extraction (LLM + rule-based) | ✅ | ✅ | 🟡 rules: all 2,481 resumes; LLM: gold set (120b 100/100) | 100 hand labels for accuracy |
 | 3. Ground truth (splits, pools, judge) | ✅ | ✅ | 🟡 splits + 3,010 pooled pairs ([`splits.json`](results/splits.json)) | 200 hand labels, then the judge |
-| 4. Hybrid retrieval + evaluation | ✅ | ✅ | 🟡 indexes built ([`index_build.json`](results/index_build.json)) | labels (Stage 3) for metrics |
-| 5. Cross-encoder re-ranker | ✅ (+ Colab notebook) | ✅ (notebook smoke-tested) | ⬜ | judge labels → export → Colab → HF Hub |
+| 4. Hybrid retrieval + evaluation | ✅ | ✅ | 🟡 proxy metrics on 459 test jobs ([`retrieval.md`](results/retrieval.md)) | human labels for the trusted metrics |
+| 5. Cross-encoder re-ranker | ✅ (+ Colab notebook) | ✅ (notebook smoke-tested) | 🟡 base re-ranker on proxy labels ([`ablation.md`](results/ablation.md)) | judge labels → export → Colab → HF Hub |
 | 6. Explainable matches | ✅ | ✅ | 🟡 quote verification works live | labels for weight tuning; quote-failure run |
-| 7. Recruiter agent | ✅ | ✅ | 🟡 1 of 20 tasks run (smoke test, passed); 3 demo tasks work | full 20-task run (spread over free-tier days) |
+| 7. Recruiter agent | ✅ | ✅ | ✅ 18/20 tasks (90%) ([`agent_eval.md`](results/agent_eval.md)) | fixes for the 2 failure modes |
 | 8. Fairness check | ✅ | ✅ | ✅ [`fairness_report.md`](results/fairness_report.md) | re-run with the fine-tuned re-ranker |
 | 9. API + frontend + tests | ✅ | ✅ 143 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
 | 10. Docker, CI, deploy | ✅ | CI + Docker image tested locally | ✅ frontend on Vercel; backend through a Cloudflare tunnel ([docs/DEPLOY.md](docs/DEPLOY.md)) | always-on backend (paid option ready) |
@@ -380,17 +380,53 @@ Human pairs per source: 50 BM25, 50 dense, 50 hybrid-middle, 50 random.
 
 ### 6.4 LLM judge agreement — –
 
-### 6.5 Ablation (test split) — –
-| Method | Recall@100 | nDCG@10 | MRR | Latency (ms) |
+### 6.5 Ablation (test split)
+
+**With human/judge labels:** – (needs the 200 pair labels).
+
+**With category proxy labels** (no human input: a resume is relevant when its occupation category equals the job's). This can't tell a strong fit from a weak one inside an occupation, so treat these as a sanity check, not the headline result.
+
+First stage, all 459 test jobs ([`retrieval.md`](results/retrieval.md)):
+
+| Method | Recall@100 | nDCG@10 | MRR | Latency (ms, mean) |
 |---|---|---|---|---|
-| BM25 | – | – | – | – |
-| Dense (bge-small, chunked) | – | – | – | – |
-| Hybrid (RRF) | – | – | – | – |
-| Hybrid + bge-reranker-base | – | – | – | – |
+| BM25 | 0.228 | 0.364 | 0.531 | 4 |
+| Dense (bge-small, chunked) | **0.315** | **0.466** | **0.618** | 79 |
+| Hybrid (RRF, k = 60) | 0.294 | 0.453 | 0.606 | 86 |
+
+RRF k sweep on **validation** ([`rrf_k_sweep.csv`](results/rrf_k_sweep.csv)): nDCG@10 rises from 0.415 (k = 1) to 0.446 (k = 60), then stays flat, so k = 60 is kept.
+
+With the re-ranker, first 50 test jobs ([`ablation.md`](results/ablation.md)):
+
+| Method | Recall@100 | nDCG@10 | MRR | Latency (ms, mean) |
+|---|---|---|---|---|
+| BM25 | 0.226 | 0.354 | 0.529 | 4 |
+| Dense | 0.304 | **0.445** | 0.590 | 152 |
+| Hybrid | 0.291 | 0.428 | **0.602** | 133 |
+| Hybrid + bge-reranker-base (top 100) | 0.291 | 0.387 | 0.532 | 55,611 |
 | Hybrid + fine-tuned reranker | – | – | – | – |
 
+**What this shows:**
+- **Recall:** BM25 finds the fewest same-occupation resumes. Dense embeddings capture "what kind of job" better than word overlap.
+- **The off-the-shelf cross-encoder makes the ranking *worse* on this proxy** (nDCG@10 0.428 → 0.387). It was trained on web search relevance, not on job–resume fit, and it reads only the first ~350 words of each resume. This is the reason for Stage 5: fine-tuning on job–resume labels.
+- **It is also slow on CPU:** about 56 s to re-rank 100 candidates. That's why the API re-ranks only the top 30, and why the final score also uses requirement checks, not only the re-ranker.
+
 ### 6.6 Explanations — –
-### 6.7 Agent — 1 of 20 tasks run so far (smoke test: passed, 2 LLM calls, 1 tool call). Full run pending Groq quota.
+### 6.7 Agent ([`agent_eval.md`](results/agent_eval.md), traces in [`agent_traces/`](results/agent_traces/))
+
+All 20 scripted tasks, model `qwen/qwen3.8-27b` on Groq's free tier, re-ranker on, max 8 steps:
+
+| Success rate | Avg LLM calls | Avg tool calls | Avg tokens per task | Avg cost per task |
+|---|---|---|---|---|
+| **90% (18/20)** | 3.4 | 2.65 | 5,977 | $0.0002 (unverified prices) |
+
+Passed, among others: the impossible request (Kafka in Bangalore: the agent says no one matches instead of inventing candidates), refusing to "approve and send" (it has no tool for that), comparing given IDs, two drafts in one request, and minimum-years filters.
+
+**The two failures, from the traces:**
+- **`t07_designer_explain`** (factual error): the top match and its explanation were correct. Its final answer, however, listed an extra candidate as "Photoshop-verified" whose resume doesn't mention Photoshop. This is the kind of claim the automatic checks exist to catch.
+- **`t14_java_explain_draft`** (reliability): Groq rejected 3 of the model's tool calls as malformed (`tool call validation failed`, once with an invented tool name). Each rejection used a step, so the agent reached the 8-step limit right after drafting, before writing its final answer.
+
+**Fixes not yet applied:** after repeated provider-side validation errors, switch to the fallback model, and don't count those rejections toward the step limit; check every candidate ID the final answer names against the tool results. The 20 tasks are the evaluation set, so after any fix, report the new rate next to this one, not instead of it.
 ### 6.8 Fairness ([`fairness_report.md`](results/fairness_report.md), [`fairness_report_dense.md`](results/fairness_report_dense.md))
 
 10 test jobs × top-20 candidates = 200 slots × 10 name groups = 2,000 counterfactuals per condition.

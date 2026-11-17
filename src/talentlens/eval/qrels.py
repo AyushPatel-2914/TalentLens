@@ -35,6 +35,8 @@ def load_qrels(cfg: dict, source: str, split: str, judge_model: str | None = Non
     human = _read_jsonl(resolve(cfg["labels"]["human_pairs_file"]))[["pair_id", "label"]]
     judge = _read_jsonl(judge_labels_path(cfg, judge_model))[["pair_id", "label"]].dropna()
 
+    if source == "category":
+        return category_qrels(cfg, split)
     if source == "human":
         labels = human
     elif source == "judge":
@@ -51,13 +53,34 @@ def load_qrels(cfg: dict, source: str, split: str, judge_model: str | None = Non
     return qrels
 
 
-def available_sources(cfg: dict) -> list[str]:
-    """Label sources that have at least one label on disk."""
+def category_qrels(cfg: dict, split: str) -> dict[str, dict[str, int]]:
+    """Proxy labels, no human input: a resume is relevant (1) to a job when both belong to the
+    same occupation category (the resume's dataset category vs the job's title-rule category).
+
+    Coarse on purpose and reported as a proxy: it can't tell a strong fit from a weak one inside
+    a category, and a mis-categorised job or a cross-category fit counts against every method.
+    It covers every job in the split, not only pooled pairs.
+    """
+    processed = resolve(cfg["paths"]["processed_dir"])
+    jobs = pd.read_parquet(processed / "jobs.parquet", columns=["job_id", "matched_category"])
+    resumes = pd.read_parquet(processed / "resumes.parquet", columns=["resume_id", "category"])
+    splits = load_splits(cfg)
+    by_category: dict[str, dict[str, int]] = {}
+    for row in resumes.itertuples(index=False):
+        by_category.setdefault(row.category, {})[row.resume_id] = 1
+    return {j.job_id: dict(by_category[j.matched_category]) for j in jobs.itertuples(index=False)
+            if splits.get(j.job_id) == split and j.matched_category in by_category}
+
+
+def available_sources(cfg: dict, proxy: bool = False) -> list[str]:
+    """Label sources that have at least one label on disk (plus the category proxy if asked)."""
     out = []
     if len(_read_jsonl(resolve(cfg["labels"]["human_pairs_file"]))):
         out.append("human")
     if len(_read_jsonl(judge_labels_path(cfg))):
         out += ["judge", "combined"]
+    if proxy:
+        out.append("category")
     return out
 
 

@@ -38,7 +38,7 @@ def main() -> None:
     load_dotenv(ROOT / ".env")
     cfg = load_config()
     rr = cfg["rerank"]
-    sources = available_sources(cfg)
+    sources = available_sources(cfg, proxy=True)
     if not sources:
         raise SystemExit("No labels yet.")
 
@@ -87,7 +87,9 @@ def main() -> None:
           f"Generated {datetime.now(timezone.utc).isoformat(timespec='seconds')} by scripts/05b_eval_rerankers.py"
           + (f" on the first {args.max_queries} queries only (partial run)" if args.max_queries else "") + ".",
           f"Re-rankers re-order the hybrid top {rr['depth']}; Recall@100 therefore equals hybrid's. "
-          "Latency = CPU, per query, including first-stage retrieval.", "",
+          "Latency = CPU, per query, including first-stage retrieval. "
+          "Label source `category` is a PROXY (no human input): a resume counts as relevant when its occupation "
+          "category equals the job's.", "",
           markdown_table(rows, COLUMNS)]
     (results / "ablation.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print("\n".join(md))

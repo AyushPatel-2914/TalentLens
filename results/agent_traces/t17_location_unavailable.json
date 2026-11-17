@@ -1,0 +1,74 @@
+{
+  "task": {
+    "id": "t17_location_unavailable",
+    "request": "Find fitness trainers with CPR certification located in Chicago.",
+    "checks": {
+      "final_contains_any": [
+        "location"
+      ],
+      "drafts": 0
+    }
+  },
+  "result": {
+    "request": "Find fitness trainers with CPR certification located in Chicago.",
+    "final_answer": "No candidates match the request: the dataset contains fitness\u2011trainer profiles with CPR certification, but none have a recorded location of Chicago (most resumes lack location data). Consequently, there are no suitable candidates to list or outreach drafts to create.",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"fitness trainer with CPR certification in Chicago\",\"top_k\":15}",
+        "result": "{\"job_requirements\": [\"CPR certification\"], \"candidates\": [{\"candidate_id\": \"R20457611\", \"score\": 0.971, \"category\": \"FITNESS\", \"years_experience\": 11.5, \"latest_titles\": [\"Group Fitness Instructor\", \"Manager Property Management\"], \"location\": null, \"required_matched\": [\"CPR certification\"], \"required_missing\": []}, {\"candidate_id\": \"R70603826\", \"score\": 0.891, \"category\": \"FITNESS\", \"years_experi",
+        "error": null,
+        "input_tokens": 1027,
+        "output_tokens": 46,
+        "latency_ms": 58849.88190000149
+      },
+      {
+        "step": 2,
+        "kind": "model_switch",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "qwen/qwen3.8-27b quota exhausted -> openai/gpt-oss-120b",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "filter_candidates",
+        "arguments": "{\"candidate_ids\":[\"R20457611\",\"R70603826\",\"R24251588\",\"R13367322\",\"R17915015\",\"R20279756\",\"R16038911\",\"R15636923\",\"R32636041\",\"R24444525\",\"R26459032\"],\"location\":\"Chicago\"}",
+        "result": "{\"count\": 0, \"candidate_ids\": [], \"truncated\": false, \"note\": \"No candidates with that location. Most resumes in this dataset have their location removed.\"}",
+        "error": null,
+        "input_tokens": 1386,
+        "output_tokens": 105,
+        "latency_ms": 1257.955300003232
+      },
+      {
+        "step": 3,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "No candidates match the request: the dataset contains fitness\u2011trainer profiles with CPR certification, but none have a recorded location of Chicago (most resumes lack location data). Consequently, there are no suitable candidates to list or outreach drafts to create.",
+        "error": null,
+        "input_tokens": 1508,
+        "output_tokens": 67,
+        "latency_ms": 1136.51789999858
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 3,
+    "input_tokens": 3921,
+    "output_tokens": 218,
+    "cost_usd": 0.0005372999999999999,
+    "models_used": [
+      "qwen/qwen3.8-27b",
+      "openai/gpt-oss-120b"
+    ],
+    "tool_call_count": 2
+  },
+  "failures": []
+}

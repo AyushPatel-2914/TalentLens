@@ -16,37 +16,40 @@
   },
   "result": {
     "request": "Find 5 accountants who know QuickBooks.",
-    "final_answer": "- **R14470533** \u2013 Accountant with QuickBooks (matched requirement).  \n- **R23636277** \u2013 Accountant with 16.5\u202fyears experience, QuickBooks proficient.  \n- **R18635654** \u2013 Accountant who knows QuickBooks.  \n- **R21338490** \u2013 Accountant with QuickBooks skill.  \n- **R37997506** \u2013 Accountant familiar with QuickBooks.",
+    "final_answer": "Here are 5 accountants who know QuickBooks (all in the ACCOUNTANT category, QuickBooks matched):\n\n1. **R14470533** \u2014 Accountant, top match (0.985)\n2. **R75286906** \u2014 Accountant, ~19.8 yrs experience (0.973)\n3. **R30813919** \u2014 Accountant / Commissioner of Taxes, ~20.5 yrs (0.955)\n4. **R37997506** \u2014 Accountant, ~7.3 yrs (0.937)\n5. **R21338490** \u2014 Accountant, ~24.1 yrs (0.927)\n\nNote: no location data is available for these candidates. Want me to compare any of them side-by-side or draft an outreach email?",
     "stopped_reason": "final_answer",
     "steps": [
       {
         "step": 1,
         "kind": "tool_call",
         "tool": "search_candidates",
-        "arguments": "{\"query\":\"accountant QuickBooks\",\"top_k\":10}",
-        "result": "{\"job_requirements\": [\"QuickBooks\"], \"candidates\": [{\"candidate_id\": \"R14470533\", \"score\": 0.982, \"category\": \"ACCOUNTANT\", \"years_experience\": null, \"latest_titles\": [], \"location\": null, \"required_matched\": [\"QuickBooks\"], \"required_missing\": []}, {\"candidate_id\": \"R23636277\", \"score\": 0.944, \"category\": \"ACCOUNTANT\", \"years_experience\": 16.5, \"latest_titles\": [\"Accountant\", \"SAP Consultant\"], \"",
+        "arguments": "{\"query\":\"certified accountant with QuickBooks experience\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [\"QuickBooks\"], \"candidates\": [{\"candidate_id\": \"R14470533\", \"score\": 0.985, \"category\": \"ACCOUNTANT\", \"years_experience\": null, \"latest_titles\": [\"Accountant\"], \"location\": null, \"required_matched\": [\"QuickBooks\"], \"required_missing\": []}, {\"candidate_id\": \"R75286906\", \"score\": 0.973, \"category\": \"ACCOUNTANT\", \"years_experience\": 19.8, \"latest_titles\": [\"Accountant\"], \"locati",
         "error": null,
-        "input_tokens": 650,
+        "input_tokens": 1027,
         "output_tokens": 44,
-        "latency_ms": 58124.45529999968
+        "latency_ms": 35436.08729999687
       },
       {
         "step": 2,
         "kind": "final",
         "tool": null,
         "arguments": null,
-        "result": "- **R14470533** \u2013 Accountant with QuickBooks (matched requirement).  \n- **R23636277** \u2013 Accountant with 16.5\u202fyears experience, QuickBooks proficient.  \n- **R18635654** \u2013 Accountant who knows QuickBooks.  \n- **R21338490** \u2013 Accountant with QuickBooks skill.  \n- **R37997506** \u2013 Accountant familiar with QuickBooks.  ",
+        "result": "Here are 5 accountants who know QuickBooks (all in the ACCOUNTANT category, QuickBooks matched):\n\n1. **R14470533** \u2014 Accountant, top match (0.985)\n2. **R75286906** \u2014 Accountant, ~19.8 yrs experience (0.973)\n3. **R30813919** \u2014 Accountant / Commissioner of Taxes, ~20.5 yrs (0.955)\n4. **R37997506** \u2014 Accountant, ~7.3 yrs (0.937)\n5. **R21338490** \u2014 Accountant, ~24.1 yrs (0.927)\n\nNote: no location data is available for these candidates. Want me to compare any of them side-by-side or draft an outreach",
         "error": null,
-        "input_tokens": 1277,
-        "output_tokens": 114,
-        "latency_ms": 880.2417999995669
+        "input_tokens": 1792,
+        "output_tokens": 206,
+        "latency_ms": 1034.5029999953113
       }
     ],
     "drafts": [],
     "llm_calls": 2,
-    "input_tokens": 1927,
-    "output_tokens": 158,
-    "cost_usd": 0.00038385000000000003,
+    "input_tokens": 2819,
+    "output_tokens": 250,
+    "cost_usd": 0.0,
+    "models_used": [
+      "qwen/qwen3.8-27b"
+    ],
     "tool_call_count": 1
   },
   "failures": []

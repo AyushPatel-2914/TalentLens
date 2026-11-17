@@ -1,0 +1,78 @@
+{
+  "task": {
+    "id": "t18_pr_social_top5",
+    "request": "Find public relations professionals with social media experience and give me the top 5.",
+    "checks": {
+      "tools_called": [
+        "search_candidates"
+      ],
+      "min_ids": 5,
+      "ids_satisfy": {
+        "skills": [
+          "Social Media"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Find public relations professionals with social media experience and give me the top 5.",
+    "final_answer": "- **R75329822** \u2013 Highest score, 15+ years in public relations/social media.  \n- **R11850315** \u2013 Strong PR background with brand consulting, 9.8 years experience.  \n- **R37913536** \u2013 Public Relations Assistant with solid PR and social media skills, 9.8 years.  \n- **R27257013** \u2013 PR & Communications Manager, 16.4 years experience.  \n- **R22754014** \u2013 Content Strategist with PR focus, 11.8 years experience.  \n\n*No outreach drafts have been created yet.*",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "model_switch",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "qwen/qwen3.8-27b quota exhausted -> openai/gpt-oss-120b",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"public relations social media\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [], \"candidates\": [{\"candidate_id\": \"R75329822\", \"score\": 0.997, \"category\": \"PUBLIC-RELATIONS\", \"years_experience\": 15.3, \"latest_titles\": [\"Public Relations/Social Media Management\"], \"location\": null, \"required_matched\": [], \"required_missing\": []}, {\"candidate_id\": \"R11850315\", \"score\": 0.985, \"category\": \"PUBLIC-RELATIONS\", \"years_experience\": 9.8, \"latest_titles\": [\"Publ",
+        "error": null,
+        "input_tokens": 637,
+        "output_tokens": 44,
+        "latency_ms": 17922.416699999303
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "filter_candidates",
+        "arguments": "{\"candidate_ids\":[\"R75329822\",\"R11850315\",\"R37913536\",\"R27257013\",\"R22754014\",\"R19929506\",\"R28290448\"],\"category\":\"PUBLIC-RELATIONS\"}",
+        "result": "{\"count\": 7, \"candidate_ids\": [\"R75329822\", \"R11850315\", \"R37913536\", \"R27257013\", \"R22754014\", \"R19929506\", \"R28290448\"], \"truncated\": false, \"note\": null}",
+        "error": null,
+        "input_tokens": 1322,
+        "output_tokens": 88,
+        "latency_ms": 1302.6829000009457
+      },
+      {
+        "step": 3,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "- **R75329822** \u2013 Highest score, 15+ years in public relations/social media.  \n- **R11850315** \u2013 Strong PR background with brand consulting, 9.8 years experience.  \n- **R37913536** \u2013 Public Relations Assistant with solid PR and social media skills, 9.8 years.  \n- **R27257013** \u2013 PR & Communications Manager, 16.4 years experience.  \n- **R22754014** \u2013 Content Strategist with PR focus, 11.8 years experience.  \n\n*No outreach drafts have been created yet.*",
+        "error": null,
+        "input_tokens": 1452,
+        "output_tokens": 184,
+        "latency_ms": 718.8047000017832
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 3,
+    "input_tokens": 3411,
+    "output_tokens": 316,
+    "cost_usd": 0.00070125,
+    "models_used": [
+      "openai/gpt-oss-120b"
+    ],
+    "tool_call_count": 2
+  },
+  "failures": []
+}

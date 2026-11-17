@@ -1,0 +1,122 @@
+{
+  "task": {
+    "id": "t19_sales_salesforce_two_drafts",
+    "request": "Find sales candidates who use Salesforce and draft outreach for the top 2.",
+    "checks": {
+      "tools_called": [
+        "search_candidates",
+        "draft_outreach"
+      ],
+      "drafts": 2,
+      "ids_satisfy": {
+        "skills": [
+          "Salesforce"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Find sales candidates who use Salesforce and draft outreach for the top 2.",
+    "final_answer": "- R27419236 \u2013 top\u2011scoring sales candidate (matched Salesforce skill).  \n- R29825044 \u2013 second\u2011scoring sales candidate (matched Salesforce skill).  \n\nDraft outreach emails have been created for both candidates and are pending approval.",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "model_switch",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "qwen/qwen3.8-27b quota exhausted -> openai/gpt-oss-120b",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"sales Salesforce\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [], \"candidates\": [{\"candidate_id\": \"R27419236\", \"score\": 0.592, \"category\": \"DIGITAL-MEDIA\", \"years_experience\": 21.2, \"latest_titles\": [\"Implementation Consultant\"], \"location\": null, \"required_matched\": [], \"required_missing\": []}, {\"candidate_id\": \"R29825044\", \"score\": 0.549, \"category\": \"BUSINESS-DEVELOPMENT\", \"years_experience\": 21.1, \"latest_titles\": [\"Director Of Busin",
+        "error": null,
+        "input_tokens": 636,
+        "output_tokens": 42,
+        "latency_ms": 56872.12509999517
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "filter_candidates",
+        "arguments": "{\"candidate_ids\":[\"R27419236\",\"R29825044\",\"R27139412\",\"R14825300\",\"R14752209\",\"R11773925\",\"R32433431\",\"R91467795\",\"R25723793\",\"R10501991\"],\"skills\":[\"Salesforce\"]}",
+        "result": "{\"count\": 10, \"candidate_ids\": [\"R27419236\", \"R29825044\", \"R27139412\", \"R14825300\", \"R14752209\", \"R11773925\", \"R32433431\", \"R91467795\", \"R25723793\", \"R10501991\"], \"truncated\": false, \"note\": null}",
+        "error": null,
+        "input_tokens": 1312,
+        "output_tokens": 104,
+        "latency_ms": 634.0970999954152
+      },
+      {
+        "step": 3,
+        "kind": "tool_call",
+        "tool": "draft_outreach",
+        "arguments": "{\"candidate_id\":\"R27419236\"}",
+        "result": "{\"draft_id\": \"93f4d29f22\", \"status\": \"PENDING_APPROVAL\", \"subject\": \"Opportunity: Sales Salesforce Role\", \"body\": \"Hi there,\\n\\nI came across your profile and wanted to reach out regarding an exciting opportunity for a Sales Salesforce position. We are looking for a motivated professional to join our team and help drive growth through effective sales strategies and customer engagement.\\n\\nWhile we",
+        "error": null,
+        "input_tokens": 1474,
+        "output_tokens": 65,
+        "latency_ms": 1738.8418999980786
+      },
+      {
+        "step": 4,
+        "kind": "tool_call",
+        "tool": "draft_outreach",
+        "arguments": "{\"candidate_id\":\"R29825044\"}",
+        "result": "{\"draft_id\": \"1eaf986bf7\", \"status\": \"PENDING_APPROVAL\", \"subject\": \"Opportunity: Sales Salesforce Role\", \"body\": \"Hi there,\\n\\nI came across your profile and wanted to reach out regarding an exciting opportunity for a Sales Salesforce position. We are looking for a motivated professional to join our team and help drive growth through effective sales strategies and customer engagement.\\n\\nWhile we",
+        "error": null,
+        "input_tokens": 1715,
+        "output_tokens": 81,
+        "latency_ms": 1212.8742000058992
+      },
+      {
+        "step": 5,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "- R27419236 \u2013 top\u2011scoring sales candidate (matched Salesforce skill).  \n- R29825044 \u2013 second\u2011scoring sales candidate (matched Salesforce skill).  \n\nDraft outreach emails have been created for both candidates and are pending approval.",
+        "error": null,
+        "input_tokens": 1955,
+        "output_tokens": 54,
+        "latency_ms": 39679.94400000316
+      }
+    ],
+    "drafts": [
+      {
+        "id": "93f4d29f22",
+        "candidate_id": "R27419236",
+        "job_ref": "sales Salesforce",
+        "subject": "Opportunity: Sales Salesforce Role",
+        "body": "Hi there,\n\nI came across your profile and wanted to reach out regarding an exciting opportunity for a Sales Salesforce position. We are looking for a motivated professional to join our team and help drive growth through effective sales strategies and customer engagement.\n\nWhile we do not have strict minimum experience requirements, we value candidates who are eager to learn, adaptable, and passionate about leveraging technology to achieve sales goals. This role offers a great chance to develop your skills in a supportive environment while contributing to meaningful projects.\n\nIf you are interested in exploring this opportunity, I would love to connect and discuss how your background aligns with our needs. Please let me know if you would like to schedule a brief chat.\n\nBest regards,\nRecruiting Team",
+        "status": "PENDING_APPROVAL",
+        "created_at": "2026-11-17T14:53:12+00:00",
+        "decided_at": null
+      },
+      {
+        "id": "1eaf986bf7",
+        "candidate_id": "R29825044",
+        "job_ref": "sales Salesforce",
+        "subject": "Opportunity: Sales Salesforce Role",
+        "body": "Hi there,\n\nI came across your profile and wanted to reach out regarding an exciting opportunity for a Sales Salesforce position. We are looking for a motivated professional to join our team and help drive growth through effective sales strategies and customer engagement.\n\nWhile we do not have strict minimum experience requirements, we value candidates who are eager to learn, adaptable, and passionate about leveraging technology to achieve sales goals. This role offers a great chance to develop your skills in a supportive environment while contributing to meaningful projects.\n\nIf you are interested in exploring this opportunity, I would love to connect and discuss how your background aligns with our needs. Please let me know if you would like to schedule a brief chat.\n\nBest regards,\nRecruiting Team",
+        "status": "PENDING_APPROVAL",
+        "created_at": "2026-11-17T14:53:13+00:00",
+        "decided_at": null
+      }
+    ],
+    "llm_calls": 5,
+    "input_tokens": 7092,
+    "output_tokens": 346,
+    "cost_usd": 0.0012714000000000002,
+    "models_used": [
+      "openai/gpt-oss-120b"
+    ],
+    "tool_call_count": 4
+  },
+  "failures": []
+}

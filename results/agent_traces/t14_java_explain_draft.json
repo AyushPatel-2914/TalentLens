@@ -1,0 +1,148 @@
+{
+  "task": {
+    "id": "t14_java_explain_draft",
+    "request": "Find a Java developer, explain the match for the best candidate, and draft outreach to them.",
+    "checks": {
+      "tools_called": [
+        "search_candidates",
+        "explain_match",
+        "draft_outreach"
+      ],
+      "drafts": 1,
+      "ids_satisfy": {
+        "skills": [
+          "Java"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Find a Java developer, explain the match for the best candidate, and draft outreach to them.",
+    "final_answer": "Stopped after 8 steps without a final answer.",
+    "stopped_reason": "max_steps",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"Java developer\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [], \"candidates\": [{\"candidate_id\": \"R85101052\", \"score\": 0.398, \"category\": \"DESIGNER\", \"years_experience\": 14.6, \"latest_titles\": [\"Technical Designer\"], \"location\": null, \"required_matched\": [], \"required_missing\": []}, {\"candidate_id\": \"R22351830\", \"score\": 0.387, \"category\": \"CONSULTANT\", \"years_experience\": 7.3, \"latest_titles\": [\"Consultant\"], \"location\": null, \"require",
+        "error": null,
+        "input_tokens": 1036,
+        "output_tokens": 41,
+        "latency_ms": 17581.06019999832
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R23464505\"}",
+        "result": "{\"score\": 0.2919, \"required_skills\": {\"matched\": [], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"intern\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 1781,
+        "output_tokens": 36,
+        "latency_ms": 2283.8866999954917
+      },
+      {
+        "step": 3,
+        "kind": "error",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "invalid tool call: HTTP 400: {\"error\":{\"message\":\"tool call validation failed: parameters for tool explain_match did not match schema: errors: [missing properties: 'candidate_id']\",\"type\":\"invalid_request_error\",\"code\":\"tool_use_failed\",\"failed_generation\":\"\\u003ctool_",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 4,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R23464505\"}",
+        "result": "{\"score\": 0.2919, \"required_skills\": {\"matched\": [], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"intern\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 2045,
+        "output_tokens": 36,
+        "latency_ms": 1277.3110000052839
+      },
+      {
+        "step": 5,
+        "kind": "error",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "invalid tool call: HTTP 400: {\"error\":{\"message\":\"tool call validation failed: parameters for tool explain_match did not match schema: errors: [missing properties: 'candidate_id']\",\"type\":\"invalid_request_error\",\"code\":\"tool_use_failed\",\"failed_generation\":\"\\u003ctool_",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 6,
+        "kind": "error",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "invalid tool call: HTTP 400: {\"error\":{\"message\":\"tool call validation failed: attempted to call tool 'explain ruled' which was not in request.tools\",\"type\":\"invalid_request_error\",\"code\":\"tool_use_failed\",\"failed_generation\":\"\\u003ctool_call\\u003e\\n\\u003cfunction=expl",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 7,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R23464505\"}",
+        "result": "{\"score\": 0.2919, \"required_skills\": {\"matched\": [], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"intern\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 2437,
+        "output_tokens": 36,
+        "latency_ms": 19779.73259999999
+      },
+      {
+        "step": 8,
+        "kind": "tool_call",
+        "tool": "draft_outreach",
+        "arguments": "{\"candidate_id\":\"R23464505\"}",
+        "result": "{\"draft_id\": \"1d0b8b7aba\", \"status\": \"PENDING_APPROVAL\", \"subject\": \"Opportunity for a Java Developer\", \"body\": \"Hi there,\\n\\nI hope you are having a great week. I am reaching out because I believe your profile could be a great fit for an open Java Developer position we are currently filling. We are looking for a dedicated professional to join our team and contribute to our ongoing projects.\\n\\nSi",
+        "error": null,
+        "input_tokens": 2589,
+        "output_tokens": 37,
+        "latency_ms": 42759.35440000467
+      },
+      {
+        "step": 8,
+        "kind": "max_steps",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": null,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      }
+    ],
+    "drafts": [
+      {
+        "id": "1d0b8b7aba",
+        "candidate_id": "R23464505",
+        "job_ref": "Java developer",
+        "subject": "Opportunity for a Java Developer",
+        "body": "Hi there,\n\nI hope you are having a great week. I am reaching out because I believe your profile could be a great fit for an open Java Developer position we are currently filling. We are looking for a dedicated professional to join our team and contribute to our ongoing projects.\n\nSince no specific minimum experience is required for this role, it is an excellent opportunity for someone eager to apply their Java skills in a supportive environment. We value talent and potential, and I would love to connect to discuss how your background aligns with our needs.\n\nIf you are open to new opportunities, please let me know a convenient time for a brief chat. I look forward to hearing from you soon.\n\nBest regards,\nRecruiting Team",
+        "status": "PENDING_APPROVAL",
+        "created_at": "2026-11-17T14:49:32+00:00",
+        "decided_at": null
+      }
+    ],
+    "llm_calls": 5,
+    "input_tokens": 9888,
+    "output_tokens": 186,
+    "cost_usd": 0.0,
+    "models_used": [
+      "qwen/qwen3.8-27b"
+    ],
+    "tool_call_count": 5
+  },
+  "failures": [
+    "no final answer (stopped: max_steps)"
+  ]
+}

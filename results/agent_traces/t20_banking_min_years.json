@@ -1,0 +1,79 @@
+{
+  "task": {
+    "id": "t20_banking_min_years",
+    "request": "Find banking candidates with customer service skills and at least 10 years of experience.",
+    "checks": {
+      "tools_called": [
+        "search_candidates"
+      ],
+      "min_ids": 1,
+      "ids_satisfy": {
+        "skills": [
+          "Customer Service"
+        ],
+        "min_years": 10
+      }
+    }
+  },
+  "result": {
+    "request": "Find banking candidates with customer service skills and at least 10 years of experience.",
+    "final_answer": "- **R17396388** \u2013 Banking professional with 22\u202fyears experience; includes customer\u2011service responsibilities.  \n- **R43375498** \u2013 Banking background, 18.4\u202fyears experience and customer\u2011service skill listed.  \n- **R29552167** \u2013 13.8\u202fyears in banking; demonstrated customer\u2011service expertise.  \n- **R18208580** \u2013 17.6\u202fyears banking experience; strong customer\u2011service focus.  \n- **R26987539** \u2013 14.7\u202fyears in banking; customer\u2011service skill present.  \n- **R10329506** \u2013 20\u202fyears banking tenure; includes customer\u2011service capabilities.  \n\nNo outreach drafts have been created yet.",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "model_switch",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "qwen/qwen3.8-27b quota exhausted -> openai/gpt-oss-120b",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"banking customer service 10 years experience\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [\"banking customer service\"], \"candidates\": [{\"candidate_id\": \"R32069695\", \"score\": 0.694, \"category\": \"AUTOMOBILE\", \"years_experience\": 23.7, \"latest_titles\": [\"Customer Service Representative\"], \"location\": null, \"required_matched\": [], \"required_missing\": [\"banking customer service\"]}, {\"candidate_id\": \"R45167858\", \"score\": 0.461, \"category\": \"BANKING\", \"years_experience\": ",
+        "error": null,
+        "input_tokens": 637,
+        "output_tokens": 48,
+        "latency_ms": 35080.8595999988
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "filter_candidates",
+        "arguments": "{\"candidate_ids\":[\"R45167858\",\"R17396388\",\"R43375498\",\"R29552167\",\"R18208580\",\"R26987539\",\"R17189156\",\"R10329506\"],\"category\":\"BANKING\",\"min_years\":10,\"skills\":[\"customer service\"]}",
+        "result": "{\"count\": 6, \"candidate_ids\": [\"R17396388\", \"R43375498\", \"R29552167\", \"R18208580\", \"R26987539\", \"R10329506\"], \"truncated\": false, \"note\": null}",
+        "error": null,
+        "input_tokens": 1364,
+        "output_tokens": 114,
+        "latency_ms": 1345.3892999968957
+      },
+      {
+        "step": 3,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "- **R17396388** \u2013 Banking professional with 22\u202fyears experience; includes customer\u2011service responsibilities.  \n- **R43375498** \u2013 Banking background, 18.4\u202fyears experience and customer\u2011service skill listed.  \n- **R29552167** \u2013 13.8\u202fyears in banking; demonstrated customer\u2011service expertise.  \n- **R18208580** \u2013 17.6\u202fyears banking experience; strong customer\u2011service focus.  \n- **R26987539** \u2013 14.7\u202fyears in banking; customer\u2011service skill present.  \n- **R10329506** \u2013 20\u202fyears banking tenure; includes",
+        "error": null,
+        "input_tokens": 1503,
+        "output_tokens": 189,
+        "latency_ms": 880.5829999982961
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 3,
+    "input_tokens": 3504,
+    "output_tokens": 351,
+    "cost_usd": 0.0007362,
+    "models_used": [
+      "openai/gpt-oss-120b"
+    ],
+    "tool_call_count": 2
+  },
+  "failures": []
+}

@@ -1,0 +1,76 @@
+{
+  "task": {
+    "id": "t15_rare_skill",
+    "request": "Find candidates who know Kubernetes.",
+    "checks": {
+      "min_ids": 1,
+      "max_ids": 3,
+      "ids_satisfy": {
+        "skills": [
+          "Kubernetes"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Find candidates who know Kubernetes.",
+    "final_answer": "Only one candidate in the dataset lists Kubernetes:\n\n- **R21297521** \u2014 the sole resume matching the \"Kubernetes\" skill filter (seniority: lead).\n\nNote: the hybrid search returned other IT candidates, but none of them actually list Kubernetes as a skill \u2014 only R21297521 does. No outreach drafts were created.",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"Kubernetes\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [], \"candidates\": [{\"candidate_id\": \"R22351830\", \"score\": 0.15, \"category\": \"CONSULTANT\", \"years_experience\": 7.3, \"latest_titles\": [\"Consultant\"], \"location\": null, \"required_matched\": [], \"required_missing\": []}, {\"candidate_id\": \"R16186411\", \"score\": 0.146, \"category\": \"INFORMATION-TECHNOLOGY\", \"years_experience\": 1.7, \"latest_titles\": [\"Database Programmer/Analyst (.Net De",
+        "error": null,
+        "input_tokens": 1023,
+        "output_tokens": 41,
+        "latency_ms": 17894.253899998148
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "filter_candidates",
+        "arguments": "{\"skills\":[\"Kubernetes\"]}",
+        "result": "{\"count\": 1, \"candidate_ids\": [\"R21297521\"], \"truncated\": false, \"note\": null}",
+        "error": null,
+        "input_tokens": 1796,
+        "output_tokens": 30,
+        "latency_ms": 2247.546600003261
+      },
+      {
+        "step": 3,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R21297521\"}",
+        "result": "{\"score\": 0.1433, \"required_skills\": {\"matched\": [], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"lead\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 1875,
+        "output_tokens": 36,
+        "latency_ms": 39598.28550000384
+      },
+      {
+        "step": 4,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "Only one candidate in the dataset lists Kubernetes:\n\n- **R21297521** \u2014 the sole resume matching the \"Kubernetes\" skill filter (seniority: lead).\n\nNote: the hybrid search returned other IT candidates, but none of them actually list Kubernetes as a skill \u2014 only R21297521 does. No outreach drafts were created.",
+        "error": null,
+        "input_tokens": 2027,
+        "output_tokens": 82,
+        "latency_ms": 1661.1902000004193
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 4,
+    "input_tokens": 6721,
+    "output_tokens": 189,
+    "cost_usd": 0.0,
+    "models_used": [
+      "qwen/qwen3.8-27b"
+    ],
+    "tool_call_count": 3
+  },
+  "failures": []
+}
