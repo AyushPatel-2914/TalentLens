@@ -1,0 +1,28 @@
+{
+  "resumes": 2481,
+  "with_years": 2450,
+  "with_title": 2407,
+  "with_education": 2077,
+  "seniority": {
+    "senior": 1422,
+    "lead": 542,
+    "executive": 259,
+    "mid": 125,
+    "intern": 69,
+    "entry": 41,
+    "unknown": 23
+  },
+  "mean_skills_per_resume": 27.0,
+  "vocabulary_size": 378,
+  "years_mean": 15.5,
+  "agreement_with_llm_on_gold": {
+    "resumes": 100,
+    "years_both_present": 98,
+    "years_within_1": 0.316,
+    "years_within_3": 0.337,
+    "education_exact": 0.83,
+    "years_within_1_no_current_job": 0.698,
+    "note": "Gold LLM rows were made with prompt v1, which treated 'Current' as 2026 (rules: mid-2021), so resumes with a current job differ by ~5 years. The no-current-job number is the fair comparison.",
+    "no_current_job_resumes": 43
+  }
+}

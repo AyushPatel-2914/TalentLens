@@ -1,0 +1,9 @@
+{
+  "tasks_run": 1,
+  "tasks_total": 1,
+  "success_rate": 1.0,
+  "avg_llm_calls": 2.0,
+  "avg_tool_calls": 1.0,
+  "avg_cost_usd": 0.000384,
+  "avg_tokens": 2085.0
+}

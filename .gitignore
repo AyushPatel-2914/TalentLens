@@ -1,0 +1,29 @@
+# Personal data and large artifacts: never commit
+data/
+!data/.gitkeep
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+.next/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local run logs
+results/_*.log
+
+# TypeScript incremental build cache
+*.tsbuildinfo

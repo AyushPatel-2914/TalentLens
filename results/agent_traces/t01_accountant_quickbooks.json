@@ -1,0 +1,53 @@
+{
+  "task": {
+    "id": "t01_accountant_quickbooks",
+    "request": "Find 5 accountants who know QuickBooks.",
+    "checks": {
+      "tools_called": [
+        "search_candidates"
+      ],
+      "min_ids": 3,
+      "ids_satisfy": {
+        "skills": [
+          "QuickBooks"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Find 5 accountants who know QuickBooks.",
+    "final_answer": "- **R14470533** \u2013 Accountant with QuickBooks (matched requirement).  \n- **R23636277** \u2013 Accountant with 16.5\u202fyears experience, QuickBooks proficient.  \n- **R18635654** \u2013 Accountant who knows QuickBooks.  \n- **R21338490** \u2013 Accountant with QuickBooks skill.  \n- **R37997506** \u2013 Accountant familiar with QuickBooks.",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"accountant QuickBooks\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [\"QuickBooks\"], \"candidates\": [{\"candidate_id\": \"R14470533\", \"score\": 0.982, \"category\": \"ACCOUNTANT\", \"years_experience\": null, \"latest_titles\": [], \"location\": null, \"required_matched\": [\"QuickBooks\"], \"required_missing\": []}, {\"candidate_id\": \"R23636277\", \"score\": 0.944, \"category\": \"ACCOUNTANT\", \"years_experience\": 16.5, \"latest_titles\": [\"Accountant\", \"SAP Consultant\"], \"",
+        "error": null,
+        "input_tokens": 650,
+        "output_tokens": 44,
+        "latency_ms": 58124.45529999968
+      },
+      {
+        "step": 2,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "- **R14470533** \u2013 Accountant with QuickBooks (matched requirement).  \n- **R23636277** \u2013 Accountant with 16.5\u202fyears experience, QuickBooks proficient.  \n- **R18635654** \u2013 Accountant who knows QuickBooks.  \n- **R21338490** \u2013 Accountant with QuickBooks skill.  \n- **R37997506** \u2013 Accountant familiar with QuickBooks.  ",
+        "error": null,
+        "input_tokens": 1277,
+        "output_tokens": 114,
+        "latency_ms": 880.2417999995669
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 2,
+    "input_tokens": 1927,
+    "output_tokens": 158,
+    "cost_usd": 0.00038385000000000003,
+    "tool_call_count": 1
+  },
+  "failures": []
+}

@@ -1,0 +1,15 @@
+.venv
+.git
+.github
+frontend
+notebooks
+tests
+results/_*.log
+results/agent_traces
+data/raw
+data/cache
+data/labels
+data/training
+data/outreach.json
+**/__pycache__
+.env

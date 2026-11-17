@@ -1,0 +1,137 @@
+# TalentLens configuration. Paths are relative to the repo root.
+
+paths:
+  # If these exact paths don't exist, the loader searches data/raw/ for the file name.
+  raw_resumes: data/raw/resume-dataset/Resume/Resume.csv
+  raw_jobs: data/raw/linkedin-job-postings/postings.csv
+  raw_dir: data/raw
+  processed_dir: data/processed
+  results_dir: results
+
+data:
+  seed: 42                 # Fixed seed -> the same job sample on every run
+  job_target: 3000         # Size of the working job set
+  resume_min_chars: 200    # Shorter texts are empty/broken rows, not resumes
+  job_min_chars: 300       # Shorter postings rarely list real requirements
+
+  # Maps LinkedIn job titles to the 24 resume categories, so sampled jobs have
+  # plausible candidates. ORDER MATTERS: first match wins, so specific categories
+  # come before generic ones ("Software Engineer" -> IT, not ENGINEERING).
+  # Keywords are matched on whole words, case-insensitively, EXCEPT all-caps
+  # acronyms (IT, HR, PR, UX ...), which are case-sensitive so "it" in a title
+  # like "Make It Happen" doesn't count as IT.
+  category_rules:
+    - {category: AVIATION, keywords: [pilot, aviation, aircraft, avionics, flight attendant, airline, airport]}
+    - {category: CHEF, keywords: [chef, cook, culinary, kitchen manager]}
+    - {category: FITNESS, keywords: [fitness, personal trainer, gym, yoga instructor, strength coach]}
+    - {category: AGRICULTURE, keywords: [agriculture, agricultural, farm, agronomist, crop, horticulture, greenhouse]}
+    - {category: APPAREL, keywords: [apparel, fashion, garment, textile, merchandiser]}
+    - {category: AUTOMOBILE, keywords: [automotive, auto technician, mechanic, vehicle, dealership]}
+    - {category: TEACHER, keywords: [teacher, tutor, educator, teaching assistant, instructor]}
+    - {category: ADVOCATE, keywords: [attorney, lawyer, paralegal, legal counsel, litigation, advocate]}
+    - {category: HEALTHCARE, keywords: [nurse, nursing, medical assistant, healthcare, clinical, physician, pharmacist, therapist, patient care]}
+    - {category: ACCOUNTANT, keywords: [accountant, accounting, bookkeeper, auditor, CPA, accounts payable, accounts receivable]}
+    - {category: BANKING, keywords: [bank, banker, banking, teller, loan officer, mortgage]}
+    - {category: PUBLIC-RELATIONS, keywords: [public relations, PR, communications specialist, communications manager, media relations]}
+    - {category: DIGITAL-MEDIA, keywords: [digital marketing, social media, content creator, content writer, video editor, SEO, digital media]}
+    - {category: DESIGNER, keywords: [designer, graphic design, UX, UI]}
+    - {category: HR, keywords: [human resources, HR, recruiter, recruiting, talent acquisition, people operations, payroll]}
+    - {category: BPO, keywords: [call center, customer service representative, customer support, customer care, BPO]}
+    - {category: BUSINESS-DEVELOPMENT, keywords: [business development, partnerships manager, BDR]}
+    - {category: INFORMATION-TECHNOLOGY, keywords: [software engineer, software developer, developer, IT, systems administrator, network engineer, data engineer, devops, help desk, programmer, data scientist, cloud engineer]}
+    - {category: CONSTRUCTION, keywords: [construction, superintendent, foreman, carpenter, electrician, estimator]}
+    - {category: FINANCE, keywords: [finance, financial, financial analyst, FP&A, investment]}
+    - {category: ARTS, keywords: [artist, art director, arts, museum, illustrator, musician]}
+    - {category: ENGINEERING, keywords: [engineer, engineering]}
+    - {category: SALES, keywords: [sales, account executive]}
+    - {category: CONSULTANT, keywords: [consultant, consulting, advisory]}
+
+llm:
+  base_url: https://api.groq.com/openai/v1
+  # Llama 3.3 is no longer served by Groq (404 on 2026-11-17). Available: openai/gpt-oss-20b,
+  # openai/gpt-oss-120b, qwen/qwen3.8-27b.
+  models:
+    extraction: openai/gpt-oss-20b    # bulk extraction (cheaper/faster); accuracy measured vs gold labels
+    strong: openai/gpt-oss-120b       # judge, agent, and the comparison run on labelled resumes
+  reasoning_effort: low               # gpt-oss "thinks" before answering; low keeps token use down
+  temperature: 0
+  max_output_tokens: 4096             # includes reasoning tokens
+  max_repair_attempts: 2              # re-ask with the validation error this many times
+  max_input_chars: 12000              # ~3k tokens; longer texts are truncated (logged)
+  # Free-tier limits PER MODEL, read from Groq response headers on 2026-11-17:
+  # x-ratelimit-limit-requests: 1000 (per day), x-ratelimit-limit-tokens: 8000 (per minute).
+  rate_limits:
+    requests_per_minute: 30
+    tokens_per_minute: 8000
+  # USD per 1M tokens. UNVERIFIED: check https://groq.com/pricing and update.
+  # Tokens are always logged exactly; cost = tokens x these prices.
+  prices_per_million:
+    openai/gpt-oss-20b: {input: 0.075, output: 0.30}
+    openai/gpt-oss-120b: {input: 0.15, output: 0.60}
+    qwen/qwen3.8-27b: {input: 0.0, output: 0.0}
+  cache_dir: data/cache/llm
+  cost_log: results/llm_costs.csv
+
+extraction:
+  prompt_version: v2                  # v2: 'Current' = mid-2021 (v1 said 2026). Bump on prompt changes -> cache misses
+  skill_aliases: configs/skill_aliases.yaml
+  gold_sample_size: 100
+  gold_file: data/labels/extraction_gold.jsonl
+
+retrieval:
+  index_dir: data/indexes
+  depth: 100                  # how many candidates stage one returns
+  fusion_depth: 200           # how deep each method's list goes before RRF fusion
+  rrf_k: 60                   # Cormack et al. (2009) default; tuned on validation in Stage 4
+  bm25: {k1: 1.5, b: 0.75}    # rank_bm25 defaults
+  dense:
+    model: BAAI/bge-small-en-v1.5   # 384-dim, 33M params, fast on CPU
+    query_instruction: "Represent this sentence for searching relevant passages: "
+    chunk_words: 300          # bge-small reads at most 512 tokens (~380 words); longer text is cut off
+    chunk_overlap: 50         # so a sentence split across chunks still appears whole in one of them
+    batch_size: 32
+
+labels:
+  splits: {train: 0.70, validation: 0.15, test: 0.15}   # fractions of JOBS, not pairs
+  splits_file: data/labels/splits.json
+  pools_file: data/labels/pools.parquet
+  human_jobs: 50                 # drawn from the TEST split -> a trusted test subset
+  human_per_job: 4               # 50 x 4 = 200 pairs you label
+  judge_jobs: 250                # extra jobs across all splits, labelled only by the judge
+  candidates_per_job: 10         # pool size per job: 300 jobs x 10 = 3,000 judge pairs
+  human_pairs_file: data/labels/pairs_human.jsonl
+  judge_pairs_dir: data/labels/judge
+  kappa_threshold: 0.60          # quadratic-weighted kappa needed before the judge labels the rest
+  judge_max_job_chars: 3500
+  judge_max_resume_chars: 5000
+
+rerank:
+  base_model: BAAI/bge-reranker-base
+  finetuned_model: null        # after Stage 5 training: your HF Hub id, e.g. <hf-username>/talentlens-reranker
+  depth: 100                   # re-rank the hybrid top 100 (offline evaluation)
+  interactive_depth: 30        # API / agent: re-rank only the top 30 (base cross-encoder on CPU is ~0.5 s per pair)
+  max_length: 512              # cross-encoder reads at most 512 tokens for job + resume together
+  batch_size: 16
+  job_words: 150               # title + first 150 words of the job (role summary + requirements)
+  resume_words: 350            # first 350 words of the resume (summary, skills, latest roles)
+
+scoring:
+  # final = w_reranker * sigmoid(reranker logit) + w_skills * required-skill coverage + w_experience * experience fit
+  # Starting values; scripts/06_explanations.py --tune picks them on VALIDATION and writes
+  # results/score_weights.json, which the service uses when it exists.
+  weights: {reranker: 0.6, required_skills: 0.3, experience: 0.1}
+  quotes_model: openai/gpt-oss-20b   # separate free-tier quota from the agent's model
+  quotes_models: [openai/gpt-oss-20b, openai/gpt-oss-120b, qwen/qwen3.8-27b]   # tried in order (per-model quotas)
+  max_quotes: 3
+  min_quote_chars: 15
+
+agent:
+  # qwen first: its free-tier quota isn't used by anything else, so demo runs follow the same path
+  # every time and replay from the cache. Each model has its own daily token cap; if one runs out
+  # mid-task, the loop continues the SAME conversation with the next model.
+  model: qwen/qwen3.8-27b
+  fallback_models: [openai/gpt-oss-120b, openai/gpt-oss-20b]
+  max_steps: 8                 # hard stop: the loop can never run forever or run up cost
+  max_tool_result_chars: 2500  # tool results are trimmed so the conversation fits Groq's per-request limit
+  outreach_store: data/outreach.json
+  tasks_file: configs/agent_tasks.yaml

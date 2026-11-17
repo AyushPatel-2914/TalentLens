@@ -1,0 +1,35 @@
+# Names used for counterfactual variants. Groups follow the style of resume-audit studies
+# (e.g. Bertrand & Mullainathan, 2004). A name is only a rough signal of perceived gender
+# or region; see the limits section of results/fairness_report.md.
+# Three names per group, so one unusual name can't drive the result.
+groups:
+  anglo_female:            {gender: female, names: [Emily Walsh, Sarah Mitchell, Anne Baker]}
+  anglo_male:              {gender: male,   names: [Greg Baker, Matthew Sullivan, Brendan Walsh]}
+  african_american_female: {gender: female, names: [Lakisha Washington, Tamika Jackson, Ebony Robinson]}
+  african_american_male:   {gender: male,   names: [Jamal Washington, Darnell Jackson, Tyrone Robinson]}
+  indian_female:           {gender: female, names: [Priya Sharma, Ananya Iyer, Kavya Reddy]}
+  indian_male:             {gender: male,   names: [Rahul Sharma, Arjun Iyer, Vikram Reddy]}
+  hispanic_female:         {gender: female, names: [Maria Hernandez, Lucia Gonzalez, Sofia Ramirez]}
+  hispanic_male:           {gender: male,   names: [Carlos Hernandez, Jose Gonzalez, Luis Ramirez]}
+  east_asian_female:       {gender: female, names: [Mei Chen, Yuki Tanaka, Ji-woo Kim]}
+  east_asian_male:         {gender: male,   names: [Wei Chen, Hiroshi Tanaka, Min-jun Kim]}
+
+# Gender-coded words: female variants get the right-hand word, male variants the left-hand word.
+gendered_words:
+  he: she
+  him: her
+  his: her
+  himself: herself
+  mr: ms
+  man: woman
+  men: women
+  male: female
+  chairman: chairwoman
+  salesman: saleswoman
+  spokesman: spokeswoman
+  businessman: businesswoman
+  waiter: waitress
+  actor: actress
+  fraternity: sorority
+  boy: girl
+  boys: girls

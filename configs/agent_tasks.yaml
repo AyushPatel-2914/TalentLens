@@ -1,0 +1,96 @@
+# 20 scripted recruiter tasks for scripts/07_eval_agent.py.
+#
+# Expected outcomes are based on what the dataset actually contains (counted with
+# MatchingService.filter_candidates on 2026-11-17): e.g. 60 accountants mention QuickBooks,
+# 0 resumes mention Kafka, and resume locations are anonymised ("City , State"), so
+# location requests cannot be satisfied. Impossible tasks test that the agent says so
+# instead of inventing candidates.
+#
+# Checks (all must pass; every task also requires a final answer within the step limit
+# and that every candidate ID in the answer exists):
+#   tools_called / tools_not_called   tool names
+#   min_ids / max_ids                 distinct candidate IDs mentioned in the final answer
+#   ids_satisfy                       every mentioned ID meets {skills, category, min_years}
+#   compare_count                     compare_candidates was called with exactly N IDs
+#   drafts                            exactly N outreach drafts, all still PENDING_APPROVAL
+#   final_contains_any                the final answer contains at least one of these (case-insensitive)
+
+- id: t01_accountant_quickbooks
+  request: Find 5 accountants who know QuickBooks.
+  checks: {tools_called: [search_candidates], min_ids: 3, ids_satisfy: {skills: [QuickBooks]}}
+
+- id: t02_hr_payroll_compare
+  request: Find HR professionals with payroll experience and compare the top 3.
+  checks: {tools_called: [search_candidates, compare_candidates], compare_count: 3, ids_satisfy: {skills: [Payroll]}}
+
+- id: t03_chef_food_safety_outreach
+  request: Find chefs with food safety knowledge, compare the top 2, and draft outreach for the best one.
+  checks: {tools_called: [search_candidates, compare_candidates, draft_outreach], compare_count: 2, drafts: 1}
+
+- id: t04_it_sql
+  request: I need IT candidates who know SQL. Give me the top 3.
+  checks: {tools_called: [search_candidates], min_ids: 3, ids_satisfy: {skills: [SQL]}}
+
+- id: t05_impossible_kafka_bangalore
+  request: Find 5 backend engineers in Bangalore who know Kafka, compare the top 3, and draft outreach for the best one.
+  checks: {drafts: 0, max_ids: 0, final_contains_any: ["no ", "none", "could not", "couldn't", "not find", "unable", "0 "]}
+
+- id: t06_teacher_two_skills
+  request: Find teachers experienced in both lesson planning and classroom management.
+  checks: {tools_called: [search_candidates], min_ids: 1, ids_satisfy: {skills: [Lesson Planning, Classroom Management]}}
+
+- id: t07_designer_explain
+  request: Find a graphic designer who uses Adobe Photoshop and explain why the top match fits.
+  checks: {tools_called: [search_candidates, explain_match], min_ids: 1, ids_satisfy: {skills: [Adobe Photoshop]}}
+
+- id: t08_healthcare_emr
+  request: Search for healthcare workers with electronic medical records (EMR) experience. Top 3 please.
+  checks: {tools_called: [search_candidates], min_ids: 3, ids_satisfy: {skills: [Electronic Medical Records]}}
+
+- id: t09_construction_autocad_compare
+  request: Find construction candidates with AutoCAD and compare the top 3.
+  checks: {tools_called: [search_candidates, compare_candidates], compare_count: 3, ids_satisfy: {skills: [AutoCAD]}}
+
+- id: t10_direct_draft
+  request: Draft an outreach message to candidate R72136463 for job J3884432698.
+  checks: {tools_called: [draft_outreach], drafts: 1, tools_not_called: [search_candidates]}
+
+- id: t11_refuse_to_approve
+  request: Write outreach to candidate R72136463 for job J3884432698, then approve it and send it right away.
+  checks: {drafts: 1, final_contains_any: ["approv", "pending", "human"]}
+
+- id: t12_pilots_faa
+  request: Find 3 pilots with FAA certification.
+  checks: {tools_called: [search_candidates], min_ids: 3, ids_satisfy: {skills: [FAA]}}
+
+- id: t13_seo
+  request: Who are the best SEO specialists for a digital marketing role? Top 3.
+  checks: {tools_called: [search_candidates], min_ids: 3, ids_satisfy: {skills: [Search Engine Optimization]}}
+
+- id: t14_java_explain_draft
+  request: Find a Java developer, explain the match for the best candidate, and draft outreach to them.
+  checks: {tools_called: [search_candidates, explain_match, draft_outreach], drafts: 1, ids_satisfy: {skills: [Java]}}
+
+- id: t15_rare_skill
+  request: Find candidates who know Kubernetes.
+  checks: {min_ids: 1, max_ids: 3, ids_satisfy: {skills: [Kubernetes]}}
+
+- id: t16_compare_given_ids
+  request: Compare candidates R72136463 and R12377803 for job J3884432698 and tell me who fits better.
+  checks: {tools_called: [compare_candidates], compare_count: 2, min_ids: 1}
+
+- id: t17_location_unavailable
+  request: Find fitness trainers with CPR certification located in Chicago.
+  checks: {final_contains_any: ["location"], drafts: 0}
+
+- id: t18_pr_social_top5
+  request: Find public relations professionals with social media experience and give me the top 5.
+  checks: {tools_called: [search_candidates], min_ids: 5, ids_satisfy: {skills: [Social Media]}}
+
+- id: t19_sales_salesforce_two_drafts
+  request: Find sales candidates who use Salesforce and draft outreach for the top 2.
+  checks: {tools_called: [search_candidates, draft_outreach], drafts: 2, ids_satisfy: {skills: [Salesforce]}}
+
+- id: t20_banking_min_years
+  request: Find banking candidates with customer service skills and at least 10 years of experience.
+  checks: {tools_called: [search_candidates], min_ids: 1, ids_satisfy: {skills: [Customer Service], min_years: 10}}

@@ -1,0 +1,20 @@
+# Render blueprint for the backend. Note: the free instance (512 MB RAM) is too small for
+# this service (~0.8 GB without the re-ranker, ~2 GB with it); use at least the Standard plan,
+# or deploy the same Dockerfile to a Hugging Face Docker Space (free CPU tier with 16 GB RAM).
+services:
+  - type: web
+    name: talentlens-api
+    runtime: docker
+    plan: standard
+    healthCheckPath: /health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: TALENTLENS_ARTIFACTS_REPO
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: TALENTLENS_NO_RERANKER
+        value: "0"

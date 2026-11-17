@@ -1,0 +1,86 @@
+# canonical name: [aliases]. Matching is case-insensitive, so only list
+# spellings that differ by more than case. Each alias may map to one canonical name.
+
+# Programming & data
+JavaScript: [js, java script, ecmascript]
+TypeScript: [ts]
+Python: [python3, python 3]
+C++: [cpp, c plus plus]
+C#: [c sharp, csharp]
+Go: [golang]
+Node.js: [node, nodejs, node js]
+React: [react.js, reactjs, react js]
+Angular: [angularjs, angular.js]
+Vue.js: [vue, vuejs]
+HTML: [html5]
+CSS: [css3]
+SQL: [structured query language]
+PostgreSQL: [postgres, postgre sql, psql]
+MySQL: [my sql]
+Microsoft SQL Server: [ms sql, mssql, sql server, ms sql server]
+MongoDB: [mongo]
+Machine Learning: [ml]
+Artificial Intelligence: [ai]
+Natural Language Processing: [nlp]
+Amazon Web Services: [aws, amazon aws]
+Microsoft Azure: [azure]
+Google Cloud Platform: [gcp, google cloud]
+Kubernetes: [k8s]
+Docker: [docker containers]
+Continuous Integration / Continuous Delivery: [ci/cd, cicd, ci cd]
+Git: [git version control]
+REST APIs: [rest, rest api, restful, restful apis, restful api]
+Linux: [unix/linux, linux/unix]
+Tableau: [tableau desktop]
+Power BI: [powerbi, microsoft power bi]
+
+# Office & business tools
+Microsoft Excel: [excel, ms excel, msexcel, advanced excel]
+Microsoft Word: [word, ms word]
+Microsoft PowerPoint: [powerpoint, ms powerpoint, power point]
+Microsoft Outlook: [outlook, ms outlook]
+Microsoft Office: [ms office, office suite, microsoft office suite, ms office suite]
+QuickBooks: [quick books, quickbooks online]
+SAP: [sap erp]
+Salesforce: [salesforce.com, sfdc, salesforce crm]
+Customer Relationship Management: [crm]
+Enterprise Resource Planning: [erp]
+Search Engine Optimization: [seo]
+Search Engine Marketing: [sem]
+Key Performance Indicators: [kpi, kpis]
+Project Management: [project mgmt]
+Project Management Professional: [pmp]
+Agile: [agile methodology, agile methodologies]
+Scrum: [scrum methodology]
+
+# Finance & accounting
+Accounts Payable: [a/p, ap]
+Accounts Receivable: [a/r, ar]
+Generally Accepted Accounting Principles: [gaap, us gaap]
+Certified Public Accountant: [cpa]
+Financial Planning and Analysis: [fp&a, fpa]
+Profit and Loss Management: [p&l, p&l management, profit & loss]
+
+# HR
+Human Resources Information System: [hris]
+Applicant Tracking System: [ats]
+Talent Acquisition: [recruiting, recruitment]
+
+# Design & media
+Adobe Photoshop: [photoshop]
+Adobe Illustrator: [illustrator]
+Adobe InDesign: [indesign]
+Adobe Creative Suite: [adobe cs, creative suite, adobe creative cloud]
+AutoCAD: [auto cad, autocad 2d]
+User Experience Design: [ux, ux design]
+User Interface Design: [ui, ui design]
+
+# Healthcare
+Cardiopulmonary Resuscitation: [cpr, cpr certified]
+Basic Life Support: [bls]
+Electronic Medical Records: [emr, ehr, electronic health records]
+Health Insurance Portability and Accountability Act: [hipaa]
+
+# Other
+Occupational Safety and Health Administration: [osha]
+Customer Service: [customer support, client service]

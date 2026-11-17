@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-11-17T07:04:38+00:00",
+  "config": {
+    "seed": 42,
+    "job_target": 3000,
+    "resume_min_chars": 200,
+    "job_min_chars": 300
+  },
+  "sources": {
+    "resumes": "Resume.csv",
+    "jobs": "postings.csv"
+  },
+  "resumes": {
+    "raw_rows": 2484,
+    "dropped_duplicate_id": 0,
+    "pii_removed": {
+      "email": 36,
+      "url": 201,
+      "phone": 155
+    },
+    "dropped_too_short": 1,
+    "dropped_duplicate_text": 2,
+    "final_rows": 2481,
+    "per_category": {
+      "ACCOUNTANT": 118,
+      "ADVOCATE": 118,
+      "AGRICULTURE": 63,
+      "APPAREL": 97,
+      "ARTS": 103,
+      "AUTOMOBILE": 36,
+      "AVIATION": 116,
+      "BANKING": 115,
+      "BPO": 22,
+      "BUSINESS-DEVELOPMENT": 119,
+      "CHEF": 118,
+      "CONSTRUCTION": 112,
+      "CONSULTANT": 115,
+      "DESIGNER": 107,
+      "DIGITAL-MEDIA": 96,
+      "ENGINEERING": 118,
+      "FINANCE": 117,
+      "FITNESS": 117,
+      "HEALTHCARE": 115,
+      "HR": 110,
+      "INFORMATION-TECHNOLOGY": 120,
+      "PUBLIC-RELATIONS": 111,
+      "SALES": 116,
+      "TEACHER": 102
+    },
+    "length": {
+      "mean_chars": 5926.3,
+      "median_chars": 5542.0,
+      "mean_words": 811.6
+    },
+    "leftover_pii_after_redaction": {
+      "email": 0,
+      "phone": 0
+    }
+  },
+  "jobs": {
+    "raw_rows": 123849,
+    "title_matched_rows": 52999,
+    "pii_removed_before_sampling": {
+      "email": 7885,
+      "url": 12152,
+      "phone": 3999
+    },
+    "dropped_too_short": 316,
+    "dropped_duplicate_text": 6945,
+    "eligible_rows": 45738,
+    "eligible_per_category": {
+      "ACCOUNTANT": 2660,
+      "ADVOCATE": 1194,
+      "AGRICULTURE": 76,
+      "APPAREL": 391,
+      "ARTS": 104,
+      "AUTOMOBILE": 713,
+      "AVIATION": 223,
+      "BANKING": 970,
+      "BPO": 762,
+      "BUSINESS-DEVELOPMENT": 731,
+      "CHEF": 520,
+      "CONSTRUCTION": 1494,
+      "CONSULTANT": 1246,
+      "DESIGNER": 968,
+      "DIGITAL-MEDIA": 479,
+      "ENGINEERING": 7759,
+      "FINANCE": 1868,
+      "FITNESS": 82,
+      "HEALTHCARE": 9410,
+      "HR": 1648,
+      "INFORMATION-TECHNOLOGY": 5511,
+      "PUBLIC-RELATIONS": 232,
+      "SALES": 5782,
+      "TEACHER": 915
+    },
+    "final_rows": 3000,
+    "per_category": {
+      "ACCOUNTANT": 131,
+      "ADVOCATE": 130,
+      "AGRICULTURE": 76,
+      "APPAREL": 130,
+      "ARTS": 104,
+      "AUTOMOBILE": 130,
+      "AVIATION": 130,
+      "BANKING": 130,
+      "BPO": 130,
+      "BUSINESS-DEVELOPMENT": 130,
+      "CHEF": 130,
+      "CONSTRUCTION": 131,
+      "CONSULTANT": 130,
+      "DESIGNER": 130,
+      "DIGITAL-MEDIA": 130,
+      "ENGINEERING": 131,
+      "FINANCE": 131,
+      "FITNESS": 82,
+      "HEALTHCARE": 131,
+      "HR": 131,
+      "INFORMATION-TECHNOLOGY": 131,
+      "PUBLIC-RELATIONS": 130,
+      "SALES": 131,
+      "TEACHER": 130
+    },
+    "length": {
+      "mean_chars": 3700.9,
+      "median_chars": 3367.0,
+      "mean_words": 515.9
+    },
+    "leftover_pii_after_redaction": {
+      "email": 0,
+      "phone": 0
+    }
+  },
+  "runtime_seconds": 114.0
+}

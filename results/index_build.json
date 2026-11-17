@@ -1,0 +1,18 @@
+[
+  {
+    "corpus": "resumes",
+    "docs": 2481,
+    "dense_chunks": 8773,
+    "chunks_per_doc": 3.54,
+    "bm25_build_seconds": 1.2,
+    "dense_build_seconds": 1329.6
+  },
+  {
+    "corpus": "jobs",
+    "docs": 3000,
+    "dense_chunks": 7157,
+    "chunks_per_doc": 2.39,
+    "bm25_build_seconds": 2.9,
+    "dense_build_seconds": 1011.3
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "jobs_per_split": {
+    "train": 2102,
+    "test": 459,
+    "validation": 439
+  },
+  "labelled_jobs_per_split": {
+    "train": 175,
+    "test": 88,
+    "validation": 38
+  },
+  "pairs_total": 3010,
+  "pairs_per_split": {
+    "train": 1750,
+    "test": 880,
+    "validation": 380
+  },
+  "pairs_for_human": 200,
+  "pairs_per_source": {
+    "bm25": 903,
+    "dense": 903,
+    "hybrid": 602,
+    "random": 602
+  },
+  "human_pairs_per_source": {
+    "bm25": 50,
+    "dense": 50,
+    "hybrid": 50,
+    "random": 50
+  }
+}

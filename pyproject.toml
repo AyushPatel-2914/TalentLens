@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "talentlens"
+version = "0.1.0"
+description = "Explainable AI job matching with a recruiter agent"
+requires-python = ">=3.10"
+# Dependencies are added stage by stage, so each one has a reason to be here.
+dependencies = [
+    "pandas>=2.0",      # Stage 1: tabular data
+    "pyarrow>=14",      # Stage 1: parquet read/write
+    "ftfy>=6.1",        # Stage 1: repair broken characters (mojibake)
+    "pyyaml>=6.0",      # Stage 1: config files
+    "pydantic>=2.5",    # Stage 2: validate LLM output against a schema
+    "httpx>=0.27",      # Stage 2: plain HTTP calls to Groq (no SDK magic, rate-limit headers visible)
+    "python-dotenv>=1.0",  # Stage 2: read GROQ_API_KEY from .env
+    "tqdm>=4.66",       # Stage 2: progress bars for long runs
+    "rank-bm25>=0.2.2", # Stage 4: lexical retrieval
+    "sentence-transformers>=3.0",  # Stage 4: dense embeddings (bi-encoder); Stage 5 cross-encoder
+    "faiss-cpu>=1.8",   # Stage 4: vector index
+    "scikit-learn>=1.4",  # Stage 3: Cohen's kappa, confusion matrix
+    "fastapi>=0.110",   # Stage 9: API
+    "uvicorn>=0.29",    # Stage 9: API server
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

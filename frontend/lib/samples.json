@@ -1,0 +1,31 @@
+{
+  "jobs": [
+    {
+      "label": "Staff Accountant",
+      "text": "Staff Accountant\nWe are looking for a Staff Accountant to manage accounts payable, month-end close and reconciliations.\nRequirements: 3+ years of accounting experience, QuickBooks, Microsoft Excel, GAAP knowledge.\nNice to have: SAP, CPA."
+    },
+    {
+      "label": "HR Generalist",
+      "text": "HR Generalist\nJoin our people team to run payroll, onboarding and employee relations for a 300-person company.\nRequirements: 2+ years in HR, payroll processing, HRIS experience, knowledge of employment law and benefits administration.\nNice to have: recruiting experience, SHRM certification."
+    },
+    {
+      "label": "Sous Chef",
+      "text": "Sous Chef\nBusy restaurant seeks a Sous Chef to lead the line, plan menus and manage kitchen staff.\nRequirements: 4+ years of kitchen experience, food safety certification, menu planning, inventory control.\nNice to have: catering experience, culinary degree."
+    }
+  ],
+  "resumes": [
+    {
+      "label": "Line cook resume",
+      "text": "Experienced line cook and sous chef with 6 years in busy restaurant kitchens. Food safety certified (ServSafe). Skilled in menu planning, inventory control, ordering, and managing a kitchen staff of 8. Prepared banquets and catering events for up to 300 guests."
+    },
+    {
+      "label": "Data analyst resume",
+      "text": "Data analyst with 4 years of experience building dashboards in Tableau and Power BI. Strong SQL and Python (pandas), Microsoft Excel (pivot tables, VLOOKUP). Built weekly sales reports and forecasting models for a retail chain."
+    }
+  ],
+  "agent": [
+    "Find 5 accountants who know QuickBooks, compare the top 3, and draft outreach for the best one.",
+    "Find chefs with food safety knowledge and explain why the top match fits.",
+    "Find backend engineers in Bangalore who know Kafka."
+  ]
+}

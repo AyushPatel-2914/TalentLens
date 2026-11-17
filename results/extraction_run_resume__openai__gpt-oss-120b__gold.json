@@ -1,0 +1,25 @@
+{
+  "kind": "resume",
+  "model": "openai/gpt-oss-120b",
+  "gold_only": true,
+  "requested": 100,
+  "processed": 100,
+  "status_counts": {
+    "ok": 97,
+    "repaired": 3
+  },
+  "valid_rate": 1.0,
+  "truncated": 4,
+  "tokens_this_run_uncached": {
+    "input": 14798,
+    "output": 4242
+  },
+  "tokens_per_doc_mean": {
+    "input": 1536.4,
+    "output": 529.8
+  },
+  "cost_usd_this_run": 0.004765,
+  "runtime_seconds": 132.2,
+  "stopped_early": null,
+  "rows_in_output_file": 100
+}
