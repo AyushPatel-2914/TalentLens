@@ -106,6 +106,18 @@ def test_public_demo_rate_limits_requests(tmp_path, monkeypatch):
     assert codes == [200, 200, 429] and other == 200
 
 
+def test_rate_limit_uses_cloudflare_visitor_ip(tmp_path, monkeypatch):
+    # Behind a Cloudflare tunnel every request arrives from localhost; CF-Connecting-IP is the visitor.
+    monkeypatch.setenv("TALENTLENS_PUBLIC_DEMO", "1")
+    monkeypatch.setenv("RATE_LIMIT_MATCH_PER_HOUR", "1")
+    c, _ = client_with(tmp_path=tmp_path)
+    with c:
+        a1 = c.post("/match/job", json={"job_text": JOB}, headers={"CF-Connecting-IP": "9.9.9.9"}).status_code
+        a2 = c.post("/match/job", json={"job_text": JOB}, headers={"CF-Connecting-IP": "9.9.9.9"}).status_code
+        b1 = c.post("/match/job", json={"job_text": JOB}, headers={"CF-Connecting-IP": "8.8.8.8"}).status_code
+    assert (a1, a2, b1) == (200, 429, 200)
+
+
 def test_cors_origin_regex(tmp_path, monkeypatch):
     monkeypatch.setenv("ALLOWED_ORIGIN_REGEX", r"https://talentlens-.*\.vercel\.app")
     c, _ = client_with(tmp_path=tmp_path)

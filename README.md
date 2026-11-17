@@ -446,17 +446,18 @@ python scripts/07_agent.py "Find 3 chefs with food safety and draft outreach for
 
 ## 9. Deployment
 
-Step-by-step guide: **[docs/DEPLOY.md](docs/DEPLOY.md)** (free; about 1 hour).
+Step-by-step guide: **[docs/DEPLOY.md](docs/DEPLOY.md)** (free; no card needed).
 
 | Part | Where | Notes |
 |---|---|---|
-| Frontend | **Vercel** | Root directory `frontend`, env `NEXT_PUBLIC_API_URL` |
-| Backend | **Hugging Face Docker Space** (free CPU, 16 GB RAM) | [`deploy/hf-space/`](deploy/hf-space/) builds the image from this GitHub repo; both models are baked into the image |
-| Data, indexes, caches | **Private** Hugging Face dataset | Downloaded at startup (`TALENTLENS_ARTIFACTS_REPO` + `HF_TOKEN`); never in git or in the image |
+| Frontend | **Vercel** (free) | Root directory `frontend`; stable public URL |
+| Backend | **This laptop**, exposed by a free **Cloudflare quick tunnel** | `start_public_demo.cmd` starts the API in public-demo mode, opens the tunnel and prints a share link `https://<vercel-app>/?api=https://<random>.trycloudflare.com` |
+| Always-on option (paid) | Hugging Face Docker Space + **private** HF dataset | [`deploy/hf-space/`](deploy/hf-space/) and `scripts/publish_artifacts.py` are ready; new Docker Spaces need HF PRO since mid-2026 |
 
-- **Why not Render's free tier?** 512 MB RAM; the backend needs ~0.8 GB without the re-ranker. [`render.yaml`](render.yaml) is kept for a paid instance.
-- **Public-demo protection:** with `TALENTLENS_PUBLIC_DEMO=1` every visitor is rate-limited (60 match / 15 agent requests per hour, by `X-Forwarded-For`), so nobody can use up the free LLM quota. The warmed-up caches ship with the data, so the demo examples are instant on the server and use no quota.
-- **Cold starts:** free Spaces sleep when idle; the frontend shows "backend is waking up" and retries automatically.
+- **Why not a free cloud host?** The backend needs about 3 GB of RAM (PyTorch plus the embedding model and the cross-encoder). Free container tiers (Render, Koyeb) offer 512 MB, and Hugging Face Docker Spaces now need a paid plan. [`render.yaml`](render.yaml) is kept for a paid instance.
+- **Runtime backend URL:** the frontend reads `?api=` from the link and accepts only `https://*.trycloudflare.com` or localhost, so a crafted link can't point the page at another server. The URL is remembered in the browser. `NEXT_PUBLIC_API_URL` is still used as the default.
+- **Public-demo protection:** with `TALENTLENS_PUBLIC_DEMO=1` every visitor is rate-limited (60 match / 15 agent requests per hour, keyed by `CF-Connecting-IP` or `X-Forwarded-For`), so nobody can use up the free LLM quota. Warmed-up caches make the demo examples instant and quota-free.
+- **Backend offline:** the frontend says the backend runs on demand, links to GitHub and keeps retrying.
 - **CORS & secrets:** `ALLOWED_ORIGINS` / `ALLOWED_ORIGIN_REGEX`, `GROQ_API_KEY` and `HF_TOKEN` come from environment variables only; `.env` is git-ignored.
 - **Local container:** `docker build -t talentlens .` then `docker run -p 7860:7860 --env-file .env -v "%cd%\data:/home/user/app/data" talentlens`.
 - **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs pytest and a frontend type-check + build on every push.

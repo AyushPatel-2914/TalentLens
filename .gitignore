@@ -24,6 +24,7 @@ Thumbs.db
 
 # Local run logs
 results/_*.log
+logs/
 
 # TypeScript incremental build cache
 *.tsbuildinfo

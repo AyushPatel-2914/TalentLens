@@ -98,7 +98,11 @@ class RateLimiter:
 
 
 def client_key(request: Request) -> str:
-    # Behind a proxy (Hugging Face Spaces, Vercel, Render) the real client is the first X-Forwarded-For entry.
+    # Behind a Cloudflare tunnel the visitor's IP is in CF-Connecting-IP; behind other proxies
+    # (Hugging Face Spaces, Render) it is the first X-Forwarded-For entry.
+    cf_ip = request.headers.get("cf-connecting-ip", "").strip()
+    if cf_ip:
+        return cf_ip
     forwarded = request.headers.get("x-forwarded-for", "")
     return forwarded.split(",")[0].strip() or (request.client.host if request.client else "unknown")
 

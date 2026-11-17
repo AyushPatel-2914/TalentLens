@@ -1,91 +1,80 @@
-# Deploying TalentLens (free): Vercel + Hugging Face Spaces
+# Deploying TalentLens (free): Vercel + backend on your laptop via Cloudflare Tunnel
 
 ```
-Browser ──► Vercel (Next.js frontend) ──► Hugging Face Space (FastAPI backend, Docker, free CPU)
-                                                │ on startup downloads data/indexes/caches from
-                                                └► a PRIVATE Hugging Face dataset
+Browser ──► Vercel (Next.js frontend, free, stable URL)
+              │  link carries ?api=https://<random>.trycloudflare.com
+              ▼
+         Cloudflare quick tunnel (free, no account) ──► FastAPI backend on this laptop (localhost:8000)
 ```
 
-Total time: about 1 hour, mostly waiting for the first build. You need a **GitHub** account (you have one), a **Hugging Face** account and a **Vercel** account (sign in to Vercel with GitHub).
+**Why this setup:** since mid-2026, new Hugging Face Docker Spaces need a PRO plan ($9/month), and the backend needs about 3 GB of RAM (PyTorch plus two models). That rules out 512 MB free hosts like Render or Koyeb. Your laptop runs it fast and for free. The catch is that the demo only works while the laptop is on and the script is running, which is fine for interviews. (The paid Hugging Face option is kept in [`deploy/hf-space/`](../deploy/hf-space/); see the end of this guide.)
 
-> Before making the demo public, check the licence on both Kaggle dataset pages. The demo shows short parts of resumes (summaries and evidence quotes). The data was already public on Kaggle and contact details were removed, but it is still personal data, so keep the dataset repo **private**.
+> The demo shows short parts of resumes (summaries and evidence quotes) from public Kaggle datasets, with contact details removed. Check the dataset licences on Kaggle before sharing the link widely.
 
 ---
 
-## Step 0: push the latest code to GitHub
-The Space builds from your GitHub repo, so it must have the latest code.
-```powershell
-cd "C:\Storage\elip project"
-git add .
-git commit -m "Deployment: HF Space, rate limits, backend status banner"
-git push
-```
-
-## Step 1: Hugging Face account and token
-1. Sign up at https://huggingface.co and note your **username** (used as `<hf-user>` below).
-2. Go to https://huggingface.co/settings/tokens → **Create new token** → type **Write** → copy it.
-3. Add it to your local `.env` file (never commit this file):
+## Step 1: deploy the frontend on Vercel (one time, about 5 minutes)
+1. Push the latest code: `git add .`, `git commit -m "..."`, `git push`.
+2. Go to https://vercel.com/new, sign in with GitHub and import **AyushPatel-2914/TalentLens**.
+3. **Root Directory:** click *Edit* → choose `frontend`.
+4. Don't add any environment variables. The backend URL comes from the share link at runtime.
+5. Click **Deploy**. Note the URL, e.g. `https://talentlens-xxxx.vercel.app`.
+   - Keep the project name starting with `talentlens`, because the backend's CORS rule allows `https://talentlens*.vercel.app`. A different name also works, as long as you set `PUBLIC_FRONTEND_URL` (next step).
+6. Add the URL to your local `.env`:
    ```
-   HF_TOKEN=hf_xxxxxxxxxxxxxxxxx
+   PUBLIC_FRONTEND_URL=https://talentlens-xxxx.vercel.app
    ```
 
-## Step 2: upload the data to a private dataset (about 60 MB)
-This uploads the processed data, indexes, rule-based fields and the **warmed-up caches**, so the demo examples are instant on the server and use no LLM quota.
-```powershell
-.\.venv\Scripts\python.exe scripts\publish_artifacts.py <hf-user>/talentlens-artifacts
+## Step 2: start the public demo (each time you want a live link)
+Close any `start_demo` API window first, then double-click **`start_public_demo.cmd`**, or run:
+```cmd
+cd /d "C:\Storage\elip project"
+start_public_demo.cmd
 ```
-Check that https://huggingface.co/datasets/<hf-user>/talentlens-artifacts says **Private**.
+It:
+1. downloads `cloudflared.exe` to `%USERPROFILE%\tools` the first time (official Cloudflare GitHub release);
+2. starts the API in **public-demo mode**, with per-visitor rate limits and CORS for your Vercel URL;
+3. opens a free quick tunnel and prints the share link, which is also copied to your clipboard:
+   ```
+   === Share this link (copied to the clipboard) ===
+       https://talentlens-xxxx.vercel.app/?api=https://some-random-words.trycloudflare.com
+   ```
 
-## Step 3: create the backend Space
-1. Go to https://huggingface.co/new-space
-   - **Space name:** `talentlens-api`
-   - **SDK:** Docker → **Blank**
-   - **Hardware:** CPU basic (free)
-   - **Visibility:** Public (the frontend needs to reach it; your data stays in the private dataset)
-2. In the new Space, open **Files** → **Add file** → **Upload files**, upload the **two** files from `deploy/hf-space/` (`Dockerfile` and `README.md`), then click **Commit**.
-3. Open **Settings** → **Variables and secrets**:
+Send that link to the interviewer. The browser remembers the backend, so they can reload the page without `?api=`.
 
-   | Type | Name | Value |
-   |---|---|---|
-   | Secret | `GROQ_API_KEY` | your Groq key |
-   | Secret | `HF_TOKEN` | a Hugging Face token with **read** access (you can reuse the write token) |
-   | Variable | `TALENTLENS_ARTIFACTS_REPO` | `<hf-user>/talentlens-artifacts` |
-   | Variable | `ALLOWED_ORIGIN_REGEX` | `https://talentlens.*\.vercel\.app` |
+**Stop:** press Ctrl+C in the script window, which closes the tunnel, then close the API window.
 
-4. The Space builds automatically (**Logs** tab, about 15–20 minutes the first time: PyTorch + two models). When it shows **Running**, open:
-   `https://<hf-user>-talentlens-api.hf.space/health` → should show `"status":"ok"` and `"public_demo":true`.
+## Step 3: test it
+Open the share link (ideally on your phone over mobile data, to test from outside your network). Click **Staff Accountant** → **Find candidates**; the cached examples answer in about a second. Then try the **Recruiter agent** tab.
 
-## Step 4: deploy the frontend on Vercel
-1. Go to https://vercel.com/new and import **AyushPatel-2914/TalentLens**.
-2. **Root Directory:** click *Edit* → choose `frontend`.
-3. **Environment Variables:** `NEXT_PUBLIC_API_URL` = `https://<hf-user>-talentlens-api.hf.space` (no trailing slash).
-4. Click **Deploy** (about 1 minute). Vercel gives you a URL like `https://talentlens-xxxx.vercel.app`.
-   - If the URL doesn't start with `talentlens`, add it in the Space as a variable `ALLOWED_ORIGINS` = your exact Vercel URL, then **Restart** the Space.
-
-## Step 5: test it
-Open your Vercel URL, click **Staff Accountant**, then **Find candidates**. It should answer in about a second (from the cache). Also try the agent tab.
-
-You can also check everything from your laptop:
-```powershell
-.\.venv\Scripts\python.exe scripts\warmup_demo.py --api https://<hf-user>-talentlens-api.hf.space
+Check from the laptop (use your tunnel URL):
+```cmd
+.venv\Scripts\python.exe scripts\warmup_demo.py --api https://some-random-words.trycloudflare.com
 ```
 
 ---
 
-## Before an interview
-- **Open the Vercel link 5–10 minutes early.** Free Spaces sleep after a period of inactivity; the page shows "backend is waking up" and retries by itself (1–3 minutes).
-- Cached examples are instant. New, pasted job texts take longer on the free CPU (about 30–90 s), because the cross-encoder runs on 2 vCPUs.
-- Public visitors are rate-limited to 60 match and 15 agent requests per hour each, so a stranger can't use up your Groq quota.
-
-## Updating after code changes
-`git push`, then in the Space **Settings** → **Factory rebuild** (it pulls the latest code from GitHub). Vercel redeploys automatically on every push. If you changed data or warmed new examples, re-run Step 2.
+## Things to know
+- **The tunnel URL changes every time you start the script.** Always send the newly printed link. Your Vercel URL stays the same, so it's the one to put on your resume. When the backend is off, that page says so and links to GitHub.
+- **Keep the laptop awake and plugged in:** Settings → System → Power → Screen and sleep → *Never* while plugged in.
+- **Safety:** only the API port is exposed, not your files. Public visitors are limited to 60 match and 15 agent requests per hour each (identified by Cloudflare's `CF-Connecting-IP`), so nobody can use up your Groq quota. Your keys stay in `.env` on the laptop.
+- **Quick tunnels** are meant for testing and demos: they have no uptime guarantee. For a stable custom URL you'd need a Cloudflare account and a domain (a named tunnel).
 
 ## Common problems
 | Symptom | Fix |
 |---|---|
-| Space log: `Could not find ... bm25.pkl` / `No indexes` | `TALENTLENS_ARTIFACTS_REPO` or `HF_TOKEN` is missing or wrong (Step 3.3), or Step 2 wasn't run |
-| Space log: `401` / `Repository not found` while downloading | The HF token can't read the private dataset: use a token from the same account |
-| Frontend error `Failed to fetch` | CORS: add your exact Vercel URL as `ALLOWED_ORIGINS` in the Space and restart it; check `NEXT_PUBLIC_API_URL` |
-| `rate limit` message | The per-visitor limit was reached; wait, or raise `RATE_LIMIT_*_PER_HOUR` in the Space variables |
-| Agent: `LLM quota exhausted` | All free Groq models hit their daily caps; the cached demo requests still work |
-| Build fails at `git clone` | The GitHub repo is private: make it public, or change `REPO_URL` in the Space Dockerfile |
+| `A local API ... is already running on port 8000` | Close the `start_demo` API window and run the script again |
+| Page says "backend isn't reachable" | The script isn't running, or you opened the Vercel link without `?api=...`; use the newly printed share link |
+| Browser console shows a CORS error | Your Vercel URL doesn't start with `talentlens`: set `PUBLIC_FRONTEND_URL` in `.env` and restart the script |
+| `No tunnel URL after 2 minutes` | Check `logs\tunnel.log`; usually a firewall or VPN is blocking Cloudflare. Try another network |
+| Download of cloudflared fails | Download `cloudflared-windows-amd64.exe` from https://github.com/cloudflare/cloudflared/releases, rename it to `cloudflared.exe` and put it in `%USERPROFILE%\tools` |
+| `rate limit` message | That visitor reached the per-hour limit; wait, or raise `RATE_LIMIT_*_PER_HOUR` |
+| Agent: `LLM quota exhausted` | All free Groq models hit their daily caps; cached demo requests still work |
+
+---
+
+## Optional: always-on backend (paid)
+If you later get Hugging Face PRO ($9/month), the always-on setup is ready:
+1. `scripts\publish_artifacts.py <hf-user>/talentlens-artifacts` uploads the data to a **private** dataset (already done for `Anakin2914/talentlens-artifacts`).
+2. Create a Docker Space and upload the two files in [`deploy/hf-space/`](../deploy/hf-space/). Add the secrets `GROQ_API_KEY` and `HF_TOKEN`, and the variables `TALENTLENS_ARTIFACTS_REPO` and `ALLOWED_ORIGIN_REGEX=https://talentlens.*\.vercel\.app`.
+3. On Vercel, set `NEXT_PUBLIC_API_URL=https://<hf-user>-talentlens-api.hf.space` and redeploy.

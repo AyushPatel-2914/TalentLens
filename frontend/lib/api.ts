@@ -1,6 +1,29 @@
 // Thin typed client for the TalentLens FastAPI backend.
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const STORAGE_KEY = "talentlens_api_url";
+
+// Only these backends may be chosen from a link, so a crafted ?api= link can't point the page elsewhere.
+const ALLOWED_API = /^(https:\/\/[a-z0-9-]+\.trycloudflare\.com|http:\/\/(localhost|127\.0\.0\.1):\d+)$/;
+
+// The public demo backend runs on the author's laptop behind a Cloudflare quick tunnel, whose URL
+// changes on every start. The share link carries it: https://<frontend>/?api=https://xyz.trycloudflare.com
+// It is remembered in this browser, so later visits without ?api= still work.
+export function getApiUrl(): string {
+  if (typeof window === "undefined") return DEFAULT_API_URL;
+  const fromLink = new URLSearchParams(window.location.search).get("api")?.trim().replace(/\/+$/, "");
+  try {
+    if (fromLink && ALLOWED_API.test(fromLink)) {
+      localStorage.setItem(STORAGE_KEY, fromLink);
+      return fromLink;
+    }
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved && ALLOWED_API.test(saved)) return saved;
+  } catch {
+    /* storage blocked: fall through */
+  }
+  return fromLink && ALLOWED_API.test(fromLink) ? fromLink : DEFAULT_API_URL;
+}
 
 export type SkillMatch = { skill: string; matched: boolean; via: string | null };
 
@@ -80,7 +103,7 @@ export type AgentResponse = {
 };
 
 async function post<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${getApiUrl()}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body ?? {}),
