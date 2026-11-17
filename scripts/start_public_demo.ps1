@@ -42,7 +42,7 @@ if ($already -and -not $already.public_demo) {
 if (-not $already) {
     Write-Host "Starting API on http://localhost:8000 (public-demo mode) ..."
     $apiEnv = "`$env:HF_HUB_DISABLE_XET='1'; `$env:PYTHONIOENCODING='utf-8'; `$env:TALENTLENS_PUBLIC_DEMO='1';" +
-              " `$env:ALLOWED_ORIGINS='http://localhost:3000,$FrontendUrl';`$env:ALLOWED_ORIGIN_REGEX='https://talentlens[a-z0-9-]*\.vercel\.app';"
+              " `$env:ALLOWED_ORIGINS='http://localhost:3000,$FrontendUrl';`$env:ALLOWED_ORIGIN_REGEX='https://talent-?lens[a-z0-9-]*\.vercel\.app';"
     Start-Process powershell -ArgumentList "-NoExit", "-Command", "$apiEnv Set-Location '$root'; & '$python' -m uvicorn talentlens.api.main:app --port 8000"
     Write-Host "Waiting for the API to load its models (about 30-60 s) ..."
     $deadline = (Get-Date).AddMinutes(5)

@@ -19,10 +19,10 @@ Browser ──► Vercel (Next.js frontend, free, stable URL)
 3. **Root Directory:** click *Edit* → choose `frontend`.
 4. Don't add any environment variables. The backend URL comes from the share link at runtime.
 5. Click **Deploy**. Note the URL, e.g. `https://talentlens-xxxx.vercel.app`.
-   - Keep the project name starting with `talentlens`, because the backend's CORS rule allows `https://talentlens*.vercel.app`. A different name also works, as long as you set `PUBLIC_FRONTEND_URL` (next step).
-6. Add the URL to your local `.env`:
+   - The backend's CORS rule allows `https://talentlens*.vercel.app` and `https://talent-lens*.vercel.app`. A different name also works, as long as you set `PUBLIC_FRONTEND_URL` (next step).
+6. Add the URL to your local `.env` (no trailing slash):
    ```
-   PUBLIC_FRONTEND_URL=https://talentlens-xxxx.vercel.app
+   PUBLIC_FRONTEND_URL=https://talent-lens-khaki.vercel.app
    ```
 
 ## Step 2: start the public demo (each time you want a live link)
