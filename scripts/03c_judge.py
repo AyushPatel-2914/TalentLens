@@ -4,6 +4,9 @@ Usage:
     # 1. Label YOUR 200 pairs with the judge and measure agreement with you:
     python scripts/03c_judge.py --agreement --model openai/gpt-oss-120b
     python scripts/03c_judge.py --agreement --model openai/gpt-oss-20b      # compare models
+    # 1b. Judge the 200 human-set TEST pairs, whether or not you have labelled them yet
+    #     (lets you label only a subset by hand and still report judge-labelled test metrics):
+    python scripts/03c_judge.py --human-set --model openai/gpt-oss-120b
     # 2. Only if weighted kappa >= threshold, label all ~3,000 pool pairs:
     python scripts/03c_judge.py --label-all --model openai/gpt-oss-120b
 
@@ -93,6 +96,8 @@ def main() -> None:
     mode = p.add_mutually_exclusive_group(required=True)
     mode.add_argument("--agreement", action="store_true")
     mode.add_argument("--label-all", action="store_true")
+    mode.add_argument("--human-set", action="store_true",
+                      help="judge the 200 pairs drawn for human labelling (test split); no kappa gate")
     p.add_argument("--model", default=None)
     p.add_argument("--force", action="store_true", help="label all even if agreement failed (not recommended)")
     args = p.parse_args()
@@ -112,6 +117,15 @@ def main() -> None:
         merged = merged.dropna(subset=["label_judge"])
         stats = agreement(merged["label_human"].astype(int).tolist(), merged["label_judge"].astype(int).tolist())
         write_agreement(cfg, model, {**stats, "judge_failures": failures})
+        return
+
+    if args.human_set:
+        pairs = pools[pools["for_human"]]
+        assert set(pairs["split"]) == {"test"}, "the human set must be test-only"
+        judged = run_judge(cfg, model, pairs)
+        judged = judged[judged["pair_id"].isin(pairs["pair_id"])]
+        print(f"Judge labels on the human set: {judged['label'].notna().sum()}/{len(pairs)} pairs. "
+              f"Distribution: {judged['label'].value_counts().sort_index().to_dict()}")
         return
 
     agreement_file = resolve(cfg["paths"]["results_dir"]) / f"judge_agreement__{safe(model)}.json"

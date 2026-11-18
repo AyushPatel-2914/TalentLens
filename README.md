@@ -17,7 +17,7 @@ Every number in this README is produced by a script and saved under [`results/`]
 | **Data** | 2,481 public Kaggle resumes (24 occupations) and 3,000 LinkedIn job postings, with contact details removed |
 | **Pipeline** | BM25 + dense embeddings → Reciprocal Rank Fusion → cross-encoder re-ranker → requirement checks → verified explanations |
 | **Agent** | A hand-written tool-calling loop (5 tools, max 8 steps); outreach drafts wait for human approval |
-| **Checks** | Retrieval metrics (Recall@100, nDCG@10, MRR), LLM-judge agreement (Cohen's κ), extraction P/R/F1, counterfactual fairness and a 20-task agent evaluation; 150 tests run in CI |
+| **Checks** | Retrieval metrics (Recall@100, nDCG@10, MRR) on proxy and LLM-judge labels, a fair re-ranker comparison on judge-labelled test pairs, counterfactual fairness and a 20-task agent evaluation; 150 tests run in CI |
 | **Cost** | Runs entirely on free tiers: Groq's free LLM API, CPU models, Vercel, a Cloudflare tunnel and free Colab for fine-tuning |
 
 ---
@@ -27,14 +27,14 @@ Every number in this README is produced by a script and saved under [`results/`]
 | Stage | Code | Tests | Real results | What is still needed |
 |---|---|---|---|---|
 | 1. Data loading & cleaning | ✅ | ✅ | ✅ [`data_stats.json`](results/data_stats.json) | – |
-| 2. Extraction (LLM + rule-based) | ✅ | ✅ | 🟡 rules: all 2,481 resumes; LLM: gold set (120b 100/100) | 100 hand labels for accuracy |
-| 3. Ground truth (splits, pools, judge) | ✅ | ✅ | 🟡 splits + 3,010 pooled pairs ([`splits.json`](results/splits.json)) | 200 hand labels, then the judge |
-| 4. Hybrid retrieval + evaluation | ✅ | ✅ | 🟡 proxy metrics on 459 test jobs ([`retrieval.md`](results/retrieval.md)) | human labels for the trusted metrics |
-| 5. Cross-encoder re-ranker | ✅ (+ Colab notebook) | ✅ (notebook smoke-tested) | ✅ fine-tuned on weak labels: proxy nDCG@10 0.387 → 0.831 ([`ablation.md`](results/ablation.md)) | score on human labels |
-| 6. Explainable matches | ✅ | ✅ | 🟡 quote verification works live | labels for weight tuning; quote-failure run |
+| 2. Extraction (LLM + rule-based) | ✅ | ✅ | 🟡 rules: all 2,481 resumes; LLM: 100% valid JSON on the gold set | field accuracy not measured (no hand labels) |
+| 3. Ground truth (splits, pools, judge) | ✅ | ✅ | ✅ splits + 3,010 pooled pairs; LLM judge on 113 test pairs (not human-validated) | judge on the rest of the 200 (free quota) |
+| 4. Hybrid retrieval + evaluation | ✅ | ✅ | ✅ proxy metrics on 459 test jobs ([`retrieval.md`](results/retrieval.md)) | – |
+| 5. Cross-encoder re-ranker | ✅ (+ Colab notebook) | ✅ (notebook smoke-tested) | ✅ fine-tuned: judge-label nDCG@4 0.845 → 0.929, pairwise accuracy 0.67 → 0.85 ([`judged_rerank_eval.md`](results/judged_rerank_eval.md)) | – |
+| 6. Explainable matches | ✅ | ✅ | 🟡 quote verification works live | weights are hand-set defaults (tuning needs validation labels) |
 | 7. Recruiter agent | ✅ | ✅ | ✅ 19/20 tasks (95%; v1 was 90%) ([`agent_eval.md`](results/agent_eval.md)) | – |
 | 8. Fairness check | ✅ | ✅ | ✅ fine-tuned: mean rank shift 1.72 → 0.92, 0 after redaction ([`fairness_report.md`](results/fairness_report.md)) | – |
-| 9. API + frontend + tests | ✅ | ✅ 143 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
+| 9. API + frontend + tests | ✅ | ✅ 150 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
 | 10. Docker, CI, deploy | ✅ | CI + Docker image tested locally | ✅ frontend on Vercel; backend through a Cloudflare tunnel ([docs/DEPLOY.md](docs/DEPLOY.md)) | always-on backend (paid option ready) |
 
 ---
@@ -256,7 +256,7 @@ The cross-encoder reads 512 tokens for job + resume together; [`pair_texts`](src
 - **Data:** TRAIN-split pairs only. Your labels are all in test and are never trained on. Two label sources:
   - **Weak labels (used first, free):** `05_export_training_data.py --labels category` takes the hybrid top 10 for each of the 2,102 train jobs. A resume is labelled 2 if its occupation category equals the job's, else 0. That gives 21,020 pairs (9,358 positive, 11,662 hard negatives), plus 4,390 validation pairs ([`training_data.json`](results/training_data.json)).
     - *Why:* judging one pair costs about 3k tokens. The free tier allows about 200k tokens per model per day, so about 65 judged pairs a day, which makes judging 1,750 train pairs a month-long job.
-    - *Caveat:* the labels are noisy, since a same-category resume can still be a weak fit. A model trained on them will look good on category labels *by construction*, so the honest test is **your human labels**.
+    - *Caveat:* the labels are noisy, since a same-category resume can still be a weak fit. A model trained on them will look good on category labels *by construction*, so the honest test is labels from a different source (here, the LLM judge on test pairs; ideally humans).
   - **Judge labels:** used once the judge passes the κ check, for as many pairs as the quota allows.
 - **Loss:** binary cross-entropy with soft targets (0 → 0.0, 1 → 0.5, 2 → 1.0). It keeps the "partial" signal, and it's stable on a small dataset. Listwise LambdaLoss is a future experiment.
 - **Hard negatives:** already in the pools. Pairs found by BM25/dense top-20 that were labelled 0 look relevant but aren't, which teaches fine distinctions. Unlabelled resumes are *not* used as negatives (some are real matches nobody labelled).
@@ -370,23 +370,37 @@ Valid-JSON rate on the 100 gold resumes ([`extraction_run_*__gold.json`](results
 | gpt-oss-120b | 100 / 100 | 100% | 97 / 3 | 4 | 1,536 / 530 |
 | gpt-oss-20b | 46 / 100 (daily quota) | 100% | 43 / 3 | 1 | 1,812 / 583 |
 
-Field-level accuracy against hand labels ([`extraction_eval.md`](results/)): – (needs the 100 labels).
+Field-level accuracy against hand labels: **not measured.** It needs 100 hand-labelled resumes ([`02b_label_extraction.py`](scripts/02b_label_extraction.py)), which were not produced. Valid JSON shows the output is well-formed, not that it is correct.
 
 ### 6.3 Splits and label pools ([`splits.json`](results/splits.json))
 
 | | Train | Validation | Test |
 |---|---|---|---|
 | Jobs | 2,102 | 439 | 459 |
-| Jobs with labelled pairs | 175 | 38 | 88 (50 human-labelled) |
+| Jobs with labelled pairs | 175 | 38 | 88 (50 in the human set, judge-labelled) |
 | Pairs | 1,750 | 380 | 880 |
 
 Human pairs per source: 50 BM25, 50 dense, 50 hybrid-middle, 50 random.
 
-### 6.4 LLM judge agreement — –
+### 6.4 LLM judge labels (not human-validated)
+
+The plan was to validate the judge against 200 human labels (quadratic-weighted κ ≥ 0.6) before trusting it. **No usable human labels were produced.** Two submitted batches had every pair rated 2, entered about a second apart, so they were set aside rather than reported. The labelling tool now refuses piped input and answers given in under 8 seconds. **There is therefore no κ, and judge labels are reported as what they are: one LLM's opinion.**
+
+`gpt-oss-120b` labelled the 200 human-set test pairs with the rubric in [`labeling/rubric.py`](src/talentlens/labeling/rubric.py) (`03c_judge.py --human-set`). So far 113 pairs are done (free daily quota). Labels: 65 × 0, 26 × 1, 22 × 2. The judge says most pooled candidates are *not* a fit, which is a useful sanity check: an "everyone fits" judge would be worthless.
 
 ### 6.5 Ablation (test split)
 
-**With human/judge labels:** – (needs the 200 pair labels).
+**On LLM-judge labels** ([`judged_rerank_eval.md`](results/judged_rerank_eval.md), [`05c_judged_rerank_eval.py`](scripts/05c_judged_rerank_eval.py)): the judge labelled about 4 candidates per test job. A full-ranking nDCG@10 would count every unlabelled resume as irrelevant and favour whichever retriever found the labelled ones (pool bias). So each re-ranker orders **the same judged candidates** for each job, and that ordering is scored. 22 jobs have candidates with different labels.
+
+| Scorer | nDCG@4 | Pairwise accuracy |
+|---|---|---|
+| Random order (exact expectation) | 0.762 | 0.500 |
+| bge-reranker-base | 0.845 | 0.667 |
+| **Fine-tuned re-ranker** | **0.929** | **0.846** |
+
+Fine-tuned minus base, per job: +0.083 nDCG@4 (bootstrap 95% CI -0.008 to +0.177). It is better on 11 jobs, worse on 4 and tied on 7. Of 78 candidate pairs the judge rated differently, the fine-tuned model orders 85% the judge's way, against 67% for the base model.
+
+**Reading it honestly:** the direction agrees with the proxy result, and the model was trained on occupation labels while here it is scored by an independent judge rubric. But the sample is small and the interval still includes zero, and the judge itself is unvalidated.
 
 **With category proxy labels** (no human input: a resume is relevant when its occupation category equals the job's). This can't tell a strong fit from a weak one inside an occupation, so treat these as a sanity check, not the headline result.
 
@@ -410,15 +424,17 @@ With the re-ranker, first 50 test jobs ([`ablation.md`](results/ablation.md)):
 | Hybrid + bge-reranker-base (top 100) | 0.291 | 0.387 | 0.532 | 55,611 |
 | Hybrid + fine-tuned reranker (top 100) ⚠️ | 0.291 | **0.831** | **0.922** | 54,695 |
 
-⚠️ The fine-tuned model was **trained on category labels** (train/validation jobs only, so there is no job leakage), and this table also scores with category labels. The jump from 0.428 to 0.831 shows the model learned the proxy rule "same occupation = match" and applies it to unseen jobs. It does **not** yet show that it ranks *good fits* better. That answer comes from the human-labelled test pairs. First-stage latencies differ from section 6.5 because this run shared the CPU; the base re-ranker row is reused from the earlier run (`--skip-base`).
+⚠️ The fine-tuned model was **trained on category labels** (train/validation jobs only, so there is no job leakage), and this table also scores with category labels. The jump from 0.428 to 0.831 shows the model learned the proxy rule "same occupation = match" and applies it to unseen jobs. On its own it does **not** show that the model ranks *good fits* better; the judge-label comparison above is the independent check. First-stage latencies differ from the table above because this run shared the CPU; the base re-ranker row is reused from the earlier run (`--skip-base`).
 
 **What this shows:**
 - **Recall:** BM25 finds the fewest same-occupation resumes. Dense embeddings capture "what kind of job" better than word overlap.
 - **The off-the-shelf cross-encoder makes the ranking *worse* on this proxy** (nDCG@10 0.428 → 0.387). It was trained on web search relevance, not on job–resume fit, and it reads only the first ~350 words of each resume. This is the reason for Stage 5: fine-tuning on job–resume labels.
-- **Fine-tuning (4 epochs, Colab T4, about 12 min per epoch) fixes the proxy gap:** validation nDCG@10 went from 0.788 (base) to 0.977 ([`finetune_training.json`](results/finetune_training.json)), and test nDCG@10 from 0.387 (base) to 0.831. Both are on weak labels, so treat them as an upper bound until the human-label row exists.
+- **Fine-tuning (4 epochs, Colab T4, about 12 min per epoch) fixes the proxy gap:** validation nDCG@10 went from 0.788 (base) to 0.977 ([`finetune_training.json`](results/finetune_training.json)), and test nDCG@10 from 0.387 (base) to 0.831. Both are on weak labels, so treat them as an upper bound; the judge-label comparison above is the independent check.
 - **It is also slow on CPU:** about 56 s to re-rank 100 candidates. That's why the API re-ranks only the top 30, and why the final score also uses requirement checks, not only the re-ranker.
 
-### 6.6 Explanations — –
+### 6.6 Explanations
+
+Score weights are the hand-set defaults (0.6 / 0.3 / 0.1); grid-search tuning (`06_explanations.py --tune`) needs validation labels, which were not produced. Quote verification is unit-tested and checked live in the demo; no batch quote-failure rate was measured.
 ### 6.7 Agent ([`agent_eval.md`](results/agent_eval.md), traces in [`agent_traces/`](results/agent_traces/))
 
 All 20 scripted tasks on Groq's free tier (`qwen/qwen3.8-27b`, falling back to `gpt-oss-120b` / `gpt-oss-20b`), re-ranker on, max 8 steps. Both runs are kept; the second doesn't replace the first.
@@ -659,7 +675,7 @@ start_demo.cmd, start_public_demo.cmd   one-click launchers for Windows
 - **Dataset fit:** 24 broad categories, about 100 resumes each, US-style, locations anonymised. It isn't a tech-hiring dataset: niche queries (Kafka, Bangalore) have no real matches, and the agent says so.
 - **Small pool:** about 2.4k resumes makes Recall@100 easier than at scale.
 - **Incomplete labels:** only labelled pairs count as relevant, so all methods are underestimated.
-- **One human labeller:** the judge is validated against one person's view of "fit".
+- **No human validation:** the judge's labels were not checked against humans (section 6.4), and extraction accuracy was not measured. Every quality number is either a proxy or an LLM opinion.
 - **Extraction errors carry forward:** a skill missed in extraction can show as "missing" (the resume-text fallback reduces this).
 - **CPU latency:** a base-size cross-encoder needs about 0.5 s per pair on a laptop CPU, so the API re-ranks the top 30 interactively, while evaluation re-ranks all 100. A GPU or a distilled re-ranker fixes this.
 - **Fairness scope:** see section 4.8.
@@ -748,7 +764,7 @@ Other config files: [`skill_aliases.yaml`](configs/skill_aliases.yaml) (skill sp
 | Hand-written agent loop | LangChain or another framework | Every step is visible and testable; fallbacks, retries and step limits are under direct control |
 | No approve tool for the agent | Let the agent send outreach | Human-in-the-loop by construction, not by prompt |
 | Split by job | Random split of pairs | Prevents leakage; tests ranking for unseen jobs |
-| LLM judge gated on κ ≥ 0.6 | Use LLM labels directly | The judge has to earn trust against human labels first |
+| LLM judge gated on κ ≥ 0.6 | Use LLM labels directly | The judge has to earn trust against human labels first. Without human labels, judge results are reported as unvalidated rather than passing the gate |
 | Rule-based extraction for the full corpus | LLM for every resume | Free and deterministic; the free LLM tier can't cover 2,481 resumes per day |
 | Cache keyed by content + logic version | No cache, or a time-based cache | Free-tier quota; a code change automatically invalidates stale answers |
 | Laptop backend + Cloudflare tunnel | Free cloud hosting | The backend needs about 3 GB of RAM; free container tiers offer 512 MB, and HF Docker Spaces now need a paid plan |

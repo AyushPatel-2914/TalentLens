@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-11-18T11:35:41+00:00",
+  "judge_model": "openai/gpt-oss-120b",
+  "labels": "LLM judge, not human-validated",
+  "split": "test",
+  "judged_pairs": 113,
+  "label_distribution": {
+    "0": 65,
+    "1": 26,
+    "2": 22
+  },
+  "rows": [
+    {
+      "scorer": "random",
+      "jobs": 22,
+      "ndcg@4": 0.7615412052912444,
+      "pairwise_accuracy": 0.5,
+      "pairs_compared": 78
+    },
+    {
+      "scorer": "bge-reranker-base",
+      "jobs": 22,
+      "ndcg@4": 0.845265734454456,
+      "pairwise_accuracy": 0.6666666666666666,
+      "pairs_compared": 78
+    },
+    {
+      "scorer": "fine-tuned reranker",
+      "jobs": 22,
+      "ndcg@4": 0.9286476177160364,
+      "pairwise_accuracy": 0.8461538461538461,
+      "pairs_compared": 78
+    }
+  ],
+  "finetuned_vs_base": {
+    "mean_ndcg_diff": 0.08338188326158055,
+    "jobs_better": 11,
+    "jobs_worse": 4,
+    "jobs_tied": 7,
+    "bootstrap_95ci": [
+      -0.008353786711825458,
+      0.17717604787079588
+    ]
+  }
+}

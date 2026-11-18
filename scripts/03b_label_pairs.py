@@ -9,13 +9,18 @@ data/labels/_current_resume.txt: open both in VS Code side by side.
 Pairs come in a shuffled order and you never see which retrieval method found
 the candidate, so your labels can't be biased toward one method.
 Progress is saved after every pair. Keys: 0 / 1 / 2, s = skip for now, q = quit.
+
+Quality guards: input must be typed in a terminal (not piped), and an answer given less than
+MIN_SECONDS after a pair is shown is refused, since that is too fast to have read the pair.
 """
 
 from __future__ import annotations
 
 import json
 import random
+import sys
 import textwrap
+import time
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -24,7 +29,12 @@ from talentlens.config import load_config, resolve
 from talentlens.labeling.rubric import RUBRIC
 
 
+MIN_SECONDS = 8
+
+
 def main() -> None:
+    if not sys.stdin.isatty():
+        raise SystemExit("Labels must be typed in an interactive terminal, not piped in.")
     cfg = load_config()
     lab = cfg["labels"]
     processed = resolve(cfg["paths"]["processed_dir"])
@@ -59,8 +69,12 @@ def main() -> None:
         print("-" * 100 + f"\nCANDIDATE {p.resume_id}\n" + "-" * 100)
         print(textwrap.fill(resume.text[:3500], 100) + (" ... (full text in _current_resume.txt)" if len(resume.text) > 3500 else ""))
 
+        shown = time.monotonic()
         while True:
             key = input("\nLabel 0 = no fit, 1 = partial, 2 = strong | s = skip | q = quit: ").strip().lower()
+            if key in {"0", "1", "2"} and time.monotonic() - shown < MIN_SECONDS:
+                print(f"Too fast: read the job and the resume first (at least {MIN_SECONDS} s).")
+                continue
             if key in {"0", "1", "2", "s", "q"}:
                 break
         if key == "q":
