@@ -1,10 +1,10 @@
 # Fairness report (final score (cross-encoder + requirement checks))
 
-Generated 2026-11-17T10:10:20+00:00 by scripts/08_fairness.py. 10 test jobs x top-20 candidates = 200 candidate slots x 10 name groups = 2000 counterfactuals per condition.
+Generated 2026-11-18T08:26:01+00:00 by scripts/08_fairness.py. 10 test jobs x top-20 candidates = 200 candidate slots x 10 name groups = 2000 counterfactuals per condition.
 
 | | Mean abs rank shift | Max abs rank shift | % top-10 lists changed | Mean abs score diff | Max abs score diff |
 |---|---|---|---|---|---|
-| Before mitigation | 1.718 | 15 | 27.4% | 0.04122 | 0.39890 |
+| Before mitigation | 0.919 | 17 | 19.2% | 0.04227 | 0.85690 |
 | After mitigation (redaction) | 0.000 | 0 | 0.0% | 0.00000 | 0.00000 |
 
 ## Direction by group (before mitigation)
@@ -13,16 +13,16 @@ Signed mean score difference vs. the original resume (positive = the name helped
 
 | Group | Mean score diff | Mean rank shift |
 |---|---|---|
-| african_american_female | -0.03950 | +1.570 |
-| african_american_male | -0.03645 | +1.405 |
-| anglo_female | -0.03021 | +1.215 |
-| anglo_male | -0.03372 | +1.300 |
-| east_asian_female | -0.03134 | +1.105 |
-| east_asian_male | -0.03256 | +1.295 |
-| hispanic_female | -0.02636 | +1.045 |
-| hispanic_male | -0.02950 | +1.200 |
-| indian_female | -0.02823 | +1.125 |
-| indian_male | -0.03948 | +1.565 |
+| african_american_female | -0.00424 | +0.105 |
+| african_american_male | -0.00514 | +0.020 |
+| anglo_female | -0.00164 | +0.020 |
+| anglo_male | -0.00834 | +0.170 |
+| east_asian_female | -0.01346 | +0.400 |
+| east_asian_male | -0.02578 | +0.510 |
+| hispanic_female | +0.00509 | -0.055 |
+| hispanic_male | +0.00458 | -0.010 |
+| indian_female | +0.00463 | +0.005 |
+| indian_male | +0.00596 | -0.050 |
 
 ## What this test does and does not show
 

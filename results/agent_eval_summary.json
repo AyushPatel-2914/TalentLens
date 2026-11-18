@@ -1,9 +1,9 @@
 {
   "tasks_run": 20,
   "tasks_total": 20,
-  "success_rate": 0.9,
-  "avg_llm_calls": 3.4,
-  "avg_tool_calls": 2.65,
-  "avg_cost_usd": 0.00017585000000000002,
-  "avg_tokens": 5977.3
+  "success_rate": 0.95,
+  "avg_llm_calls": 3.3,
+  "avg_tool_calls": 2.55,
+  "avg_cost_usd": 0.00013629999999999998,
+  "avg_tokens": 5441.85
 }

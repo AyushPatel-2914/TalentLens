@@ -32,6 +32,10 @@ class AgentState:
     current_job_id: str | None = None
     seen_candidates: dict[str, dict] = field(default_factory=dict)
     drafts: list[dict] = field(default_factory=list)
+    # Candidates that passed a skill filter in this run (None = no skill filter applied yet).
+    # The loop uses it to stop the final answer from presenting other candidates as meeting it.
+    skill_filter_passed: set[str] | None = None
+    skill_filter_skills: list[str] = field(default_factory=list)
 
 
 class SearchArgs(BaseModel):
@@ -158,6 +162,9 @@ class Toolbox:
 
     def filter_candidates(self, a: FilterArgs, state: AgentState) -> dict:
         ids = self.svc.filter_candidates(a.candidate_ids, a.location, a.min_years, a.skills, a.category)
+        if a.skills:
+            state.skill_filter_passed = (state.skill_filter_passed or set()) | set(ids)
+            state.skill_filter_skills = list(dict.fromkeys([*state.skill_filter_skills, *a.skills]))
         note = None
         if a.location and not ids:
             note = "No candidates with that location. Most resumes in this dataset have their location removed."

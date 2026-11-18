@@ -1,0 +1,57 @@
+{
+  "task": {
+    "id": "t06_teacher_two_skills",
+    "request": "Find teachers experienced in both lesson planning and classroom management.",
+    "checks": {
+      "tools_called": [
+        "search_candidates"
+      ],
+      "min_ids": 1,
+      "ids_satisfy": {
+        "skills": [
+          "Lesson Planning",
+          "Classroom Management"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Find teachers experienced in both lesson planning and classroom management.",
+    "final_answer": "Here are the best matches \u2014 all have both **lesson planning** and **classroom management** experience:\n\n| Candidate | Score | Experience | Notes |\n|---|---|---|---|\n| **R21773106** | 0.863 | 16.2 yrs | Teacher; both required skills matched |\n| **R28642819** | 0.856 | 14.4 yrs | Lead Teacher; both required skills matched |\n| **R29148871** | 0.826 | 7.6 yrs | High School English & Language Arts Teacher; both skills matched |\n| **R36206485** | 0.797 | 14.8 yrs | Teacher; both required skills matched |\n| **R27531694** | 0.764 | 28.9 yrs | Teacher; both required skills matched |\n| **R11943065** | 0.717 | 27.5 yrs | Classroom Teacher; both required skills matched |\n| **R22884757** | 0.662 | 7.8 yrs | English Teacher; both required skills matched |\n\nNote: \"high school teaching\" was flagged as missing for all, but R29148871's title explicitly shows high school English teaching. No candidates have location data in this dataset.\n\nWant me to compare the top few side-by-side or explain any match in detail?",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"high school teacher with lesson planning and classroom management experience\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [\"lesson planning\", \"classroom management\", \"high school teaching\"], \"candidates\": [{\"candidate_id\": \"R21773106\", \"score\": 0.863, \"category\": \"TEACHER\", \"years_experience\": 16.2, \"latest_titles\": [\"Teacher\"], \"location\": null, \"required_matched\": [\"lesson planning\", \"classroom management\"], \"required_missing\": [\"high school teaching\"]}, {\"candidate_id\": \"R28642819\", \"score\": 0",
+        "error": null,
+        "input_tokens": 1028,
+        "output_tokens": 47,
+        "latency_ms": 26240.97590000747
+      },
+      {
+        "step": 2,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "Here are the best matches \u2014 all have both **lesson planning** and **classroom management** experience:\n\n| Candidate | Score | Experience | Notes |\n|---|---|---|---|\n| **R21773106** | 0.863 | 16.2 yrs | Teacher; both required skills matched |\n| **R28642819** | 0.856 | 14.4 yrs | Lead Teacher; both required skills matched |\n| **R29148871** | 0.826 | 7.6 yrs | High School English & Language Arts Teacher; both skills matched |\n| **R36206485** | 0.797 | 14.8 yrs | Teacher; both required skills matche",
+        "error": null,
+        "input_tokens": 1825,
+        "output_tokens": 354,
+        "latency_ms": 2725.4953000010573
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 2,
+    "input_tokens": 2853,
+    "output_tokens": 401,
+    "cost_usd": 0.0,
+    "models_used": [
+      "qwen/qwen3.8-27b"
+    ],
+    "tool_call_count": 1
+  },
+  "failures": []
+}

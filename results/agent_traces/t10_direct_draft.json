@@ -14,7 +14,7 @@
   },
   "result": {
     "request": "Draft an outreach message to candidate R72136463 for job J3884432698.",
-    "final_answer": "Outreach draft created for candidate **R72136463** (job J3884432698, \"Full Manager Bookkeeper\").\n\n- **Draft ID:** 045768abb4\n- **Status:** PENDING_APPROVAL \u2014 a human must approve it before it can be sent. I have not sent or approved anything.\n\nLet me know if you'd like the wording adjusted before approval.",
+    "final_answer": "- Draft outreach created for candidate **R72136463** (job **J3884432698**). The email is saved as **PENDING_APPROVAL** and awaits human approval.",
     "stopped_reason": "final_answer",
     "steps": [
       {
@@ -29,46 +29,58 @@
         "latency_ms": 0.0
       },
       {
-        "step": 2,
+        "step": 1,
         "kind": "tool_call",
         "tool": "draft_outreach",
         "arguments": "{\"candidate_id\":\"R72136463\",\"job_id\":\"J3884432698\"}",
-        "result": "{\"draft_id\": \"045768abb4\", \"status\": \"PENDING_APPROVAL\", \"subject\": \"Opportunity: Full Manager Bookkeeper\", \"body\": \"Hi there,\\n\\nI came across your profile and was impressed by your background in bookkeeping and accounting. Your experience with customer service and marketing also stands out as a valuable addition to our team.\\n\\nWe are currently looking for a Full Manager Bookkeeper, and your ski",
+        "result": "{\"draft_id\": \"a09e28f487\", \"status\": \"PENDING_APPROVAL\", \"subject\": \"Opportunity: Full Manager Bookkeeper\", \"body\": \"Hi there,\\n\\nI came across your profile and was impressed by your background in bookkeeping and accounting. Your experience with customer service and marketing also stands out as a valuable addition to our team.\\n\\nWe are currently looking for a Full Manager Bookkeeper, and your ski",
         "error": null,
         "input_tokens": 1167,
         "output_tokens": 60,
-        "latency_ms": 31208.729000005405
+        "latency_ms": 451.190099993255
       },
       {
-        "step": 3,
+        "step": 2,
+        "kind": "model_switch",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "qwen/qwen3.8-27b quota exhausted -> openai/gpt-oss-120b",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 2,
         "kind": "final",
         "tool": null,
         "arguments": null,
-        "result": "Outreach draft created for candidate **R72136463** (job J3884432698, \"Full Manager Bookkeeper\").\n\n- **Draft ID:** 045768abb4\n- **Status:** PENDING_APPROVAL \u2014 a human must approve it before it can be sent. I have not sent or approved anything.\n\nLet me know if you'd like the wording adjusted before approval.",
+        "result": "- Draft outreach created for candidate **R72136463** (job **J3884432698**). The email is saved as **PENDING_APPROVAL** and awaits human approval.",
         "error": null,
-        "input_tokens": 1443,
-        "output_tokens": 96,
-        "latency_ms": 441.9532999963849
+        "input_tokens": 977,
+        "output_tokens": 42,
+        "latency_ms": 724.2857000019285
       }
     ],
     "drafts": [
       {
-        "id": "045768abb4",
+        "id": "a09e28f487",
         "candidate_id": "R72136463",
         "job_ref": "J3884432698",
         "subject": "Opportunity: Full Manager Bookkeeper",
         "body": "Hi there,\n\nI came across your profile and was impressed by your background in bookkeeping and accounting. Your experience with customer service and marketing also stands out as a valuable addition to our team.\n\nWe are currently looking for a Full Manager Bookkeeper, and your skill set seems like a great match for the role. This position offers a chance to leverage your diverse expertise in a dynamic environment. I would love to connect and share more details about the opportunity and how your background aligns with our needs.\n\nPlease let me know if you are open to a brief chat. I look forward to hearing from you soon!\n\nBest regards,\nRecruiting Team",
         "status": "PENDING_APPROVAL",
-        "created_at": "2026-11-17T14:44:57+00:00",
+        "created_at": "2026-11-17T15:52:33+00:00",
         "decided_at": null
       }
     ],
     "llm_calls": 2,
-    "input_tokens": 2610,
-    "output_tokens": 156,
-    "cost_usd": 0.0,
+    "input_tokens": 2144,
+    "output_tokens": 102,
+    "cost_usd": 0.00017174999999999997,
     "models_used": [
-      "qwen/qwen3.8-27b"
+      "qwen/qwen3.8-27b",
+      "openai/gpt-oss-120b"
     ],
     "tool_call_count": 1
   },

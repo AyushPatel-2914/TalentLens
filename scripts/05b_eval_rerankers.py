@@ -34,11 +34,21 @@ COLUMNS = ["labels", "method", "queries", "recall@100", "ndcg@10", "mrr", "laten
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--max-queries", type=int, default=None)
+    p.add_argument("--skip-base", action="store_true",
+                   help="reuse the base re-ranker row from results/ablation.csv (same labels and query count) "
+                        "instead of re-scoring it (~1 min per query on CPU)")
+    p.add_argument("--labels", nargs="+", default=None,
+                   help="label sources to evaluate (e.g. category human judge); default: all that exist")
     args = p.parse_args()
     load_dotenv(ROOT / ".env")
     cfg = load_config()
     rr = cfg["rerank"]
     sources = available_sources(cfg, proxy=True)
+    if args.labels:
+        missing = set(args.labels) - set(sources)
+        if missing:
+            raise SystemExit(f"label sources not available: {sorted(missing)} (have {sources})")
+        sources = [s for s in sources if s in args.labels]
     if not sources:
         raise SystemExit("No labels yet.")
 
@@ -60,9 +70,18 @@ def main() -> None:
             return [d for d, _ in model.rerank(rq, cands)]
         return run
 
+    BASE = "hybrid + bge-reranker-base"
+    previous = pd.DataFrame()
+    if args.skip_base:
+        prev_path = resolve(cfg["paths"]["results_dir"]) / "ablation.csv"
+        if not prev_path.exists():
+            raise SystemExit("--skip-base needs an earlier results/ablation.csv")
+        previous = pd.read_csv(prev_path)
+        previous = previous[previous["method"] == BASE]
     methods = {n: first_stage(n) for n in ["bm25", "dense", "hybrid"]}
-    print(f"Loading {rr['base_model']} ...")
-    methods["hybrid + bge-reranker-base"] = reranked(Reranker(rr["base_model"], rr["max_length"], rr["batch_size"]))
+    if not args.skip_base:
+        print(f"Loading {rr['base_model']} ...")
+        methods[BASE] = reranked(Reranker(rr["base_model"], rr["max_length"], rr["batch_size"]))
     if rr.get("finetuned_model"):
         print(f"Loading {rr['finetuned_model']} ...")
         if not os.environ.get("HF_TOKEN"):
@@ -80,6 +99,12 @@ def main() -> None:
             s, _ = evaluate_ranker(name, ranker, queries, qrels)
             rows.append({"labels": source, **s})
             print(f"[{source}] {name}: ndcg@10={s.get('ndcg@10')}, mrr={s.get('mrr')}, latency={s.get('latency_ms_mean')}")
+            if name == "hybrid" and args.skip_base:
+                old = previous[(previous["labels"] == source) & (previous["queries"] == len(qrels))]
+                if old.empty:
+                    raise SystemExit(f"--skip-base: no earlier base row for labels={source}, queries={len(qrels)}")
+                rows.append(old.iloc[0].to_dict())
+                print(f"[{source}] {BASE}: reused from the earlier results/ablation.csv")
 
     results = resolve(cfg["paths"]["results_dir"])
     pd.DataFrame(rows).to_csv(results / "ablation.csv", index=False)
@@ -89,7 +114,11 @@ def main() -> None:
           f"Re-rankers re-order the hybrid top {rr['depth']}; Recall@100 therefore equals hybrid's. "
           "Latency = CPU, per query, including first-stage retrieval. "
           "Label source `category` is a PROXY (no human input): a resume counts as relevant when its occupation "
-          "category equals the job's.", "",
+          "category equals the job's."
+          + (" The fine-tuned re-ranker was TRAINED on category labels (train/validation jobs only), so its "
+             "category score is optimistic by construction; judge it on human labels." if rr.get("finetuned_model") else "")
+          + (f" The `{BASE}` row was reused from the previous run (--skip-base), not re-scored." if args.skip_base else ""),
+          "",
           markdown_table(rows, COLUMNS)]
     (results / "ablation.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print("\n".join(md))

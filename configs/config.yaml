@@ -107,7 +107,7 @@ labels:
 
 rerank:
   base_model: BAAI/bge-reranker-base
-  finetuned_model: null        # after Stage 5 training: your HF Hub id, e.g. <hf-username>/talentlens-reranker
+  finetuned_model: Anakin2914/talentlens-reranker   # private HF repo (needs HF_TOKEN); trained on weak category labels, see results/finetune_training.json
   depth: 100                   # re-rank the hybrid top 100 (offline evaluation)
   interactive_depth: 30        # API / agent: re-rank only the top 30 (base cross-encoder on CPU is ~0.5 s per pair)
   max_length: 512              # cross-encoder reads at most 512 tokens for job + resume together

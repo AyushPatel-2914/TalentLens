@@ -1,0 +1,22 @@
+{
+  "label_source": "category",
+  "per_job": 10,
+  "train": {
+    "pairs": 21020,
+    "jobs": 2102,
+    "labels": {
+      "0": 11662,
+      "2": 9358
+    },
+    "hard_negatives": 11662
+  },
+  "validation": {
+    "pairs": 4390,
+    "jobs": 439,
+    "labels": {
+      "0": 2467,
+      "2": 1923
+    },
+    "hard_negatives": 2467
+  }
+}

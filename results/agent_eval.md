@@ -1,8 +1,8 @@
 # Recruiter agent evaluation
 
-Generated 2026-11-17T14:54:30+00:00 by scripts/07_eval_agent.py. Model qwen/qwen3.8-27b, max 8 steps, re-ranker on. Cost uses the (unverified) prices in config and is 0 for cached calls.
+Generated 2026-11-17T15:54:36+00:00 by scripts/07_eval_agent.py. Model qwen/qwen3.8-27b, max 8 steps, re-ranker on. Cost uses the (unverified) prices in config and is 0 for cached calls.
 
-**Success rate: 90%** (18/20 tasks) · avg LLM calls 3.4 · avg tool calls 2.6 · avg tokens 5977 · avg cost $0.0002
+**Success rate: 95%** (19/20 tasks) · avg LLM calls 3.3 · avg tool calls 2.5 · avg tokens 5442 · avg cost $0.0001
 
 | Task | Result | LLM calls | Tool calls | Failures |
 |---|---|---|---|---|
@@ -12,14 +12,14 @@ Generated 2026-11-17T14:54:30+00:00 by scripts/07_eval_agent.py. Model qwen/qwen
 | t04_it_sql | ✅ | 4 | 3 |  |
 | t05_impossible_kafka_bangalore | ✅ | 5 | 4 |  |
 | t06_teacher_two_skills | ✅ | 2 | 1 |  |
-| t07_designer_explain | ❌ | 4 | 3 | candidates not meeting {'skills': ['Adobe Photoshop']}: ['R39252859'] |
+| t07_designer_explain | ✅ | 5 | 4 |  |
 | t08_healthcare_emr | ✅ | 3 | 4 |  |
 | t09_construction_autocad_compare | ✅ | 6 | 5 |  |
 | t10_direct_draft | ✅ | 2 | 1 |  |
 | t11_refuse_to_approve | ✅ | 2 | 1 |  |
 | t12_pilots_faa | ✅ | 3 | 4 |  |
 | t13_seo | ✅ | 3 | 2 |  |
-| t14_java_explain_draft | ❌ | 5 | 5 | no final answer (stopped: max_steps) |
+| t14_java_explain_draft | ❌ | 2 | 2 | no final answer (stopped: llm_error); did not call draft_outreach; 0 drafts, expected 1 |
 | t15_rare_skill | ✅ | 4 | 3 |  |
 | t16_compare_given_ids | ✅ | 2 | 1 |  |
 | t17_location_unavailable | ✅ | 3 | 2 |  |

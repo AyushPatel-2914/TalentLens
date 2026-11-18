@@ -29,7 +29,7 @@
         "error": null,
         "input_tokens": 1030,
         "output_tokens": 44,
-        "latency_ms": 34081.587300002866
+        "latency_ms": 19.238399996538647
       },
       {
         "step": 2,
@@ -40,7 +40,7 @@
         "error": null,
         "input_tokens": 1766,
         "output_tokens": 60,
-        "latency_ms": 4174.761499998567
+        "latency_ms": 1067.4241000087932
       },
       {
         "step": 3,
@@ -51,7 +51,7 @@
         "error": null,
         "input_tokens": 2048,
         "output_tokens": 158,
-        "latency_ms": 775.904599999194
+        "latency_ms": 11.847800000396091
       }
     ],
     "drafts": [],

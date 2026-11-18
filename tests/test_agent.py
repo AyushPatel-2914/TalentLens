@@ -169,3 +169,60 @@ def test_tool_schemas_are_simple(toolbox):
     import json as _json
     text = _json.dumps(toolbox.schemas())
     assert "anyOf" not in text and '"title"' not in text
+
+
+VALIDATION_ERR = 'HTTP 400: {"error":{"message":"tool call validation failed: parameters for tool x"}}'
+
+
+def test_rejected_tool_calls_do_not_use_up_steps(toolbox):
+    from talentlens.llm.client import LLMError
+    # 3 rejections + 1 real step + final answer fit in max_steps=2, because rejections don't count.
+    llm = ScriptedLLM([LLMError(VALIDATION_ERR), [call("filter_candidates", {"skills": ["QuickBooks"]})],
+                       LLMError(VALIDATION_ERR), LLMError(VALIDATION_ERR), "R10001 has QuickBooks."])
+    r = run_agent("x", llm, toolbox, "m", max_steps=2)
+    assert r.stopped_reason == "final_answer"
+
+
+def test_repeated_rejections_switch_to_fallback_model(toolbox):
+    from talentlens.llm.client import LLMError
+
+    class PickyLLM(ScriptedLLM):
+        def chat(self, model, messages, json_mode=True, tag="", tools=None):
+            if model == "flaky":
+                raise LLMError(VALIDATION_ERR)
+            return super().chat(model, messages, json_mode, tag, tools)
+
+    r = run_agent("x", PickyLLM(["Answer from the fallback."]), toolbox, "flaky", fallback_models=["steady"])
+    assert r.stopped_reason == "final_answer" and r.models_used == ["steady"]
+    assert any(s.kind == "model_switch" and "rejected" in (s.error or "") for s in r.steps)
+
+
+def test_too_many_rejections_stop_the_run(toolbox):
+    from talentlens.llm.client import LLMError
+    r = run_agent("x", ScriptedLLM([LLMError(VALIDATION_ERR)] * 6), toolbox, "m")
+    assert r.stopped_reason == "llm_error"
+
+
+def test_answer_naming_unfiltered_candidates_is_revised_once(toolbox):
+    # R10002 (a chef) did not pass the QuickBooks filter, so the first answer must be revised.
+    llm = ScriptedLLM([[call("filter_candidates", {"skills": ["QuickBooks"]})],
+                       "R10001 and R10002 both know QuickBooks.",
+                       "R10001 knows QuickBooks."])
+    r = run_agent("x", llm, toolbox, "m")
+    assert r.final_answer == "R10001 knows QuickBooks."
+    assert any(s.kind == "revision" for s in r.steps)
+    assert "R10002" in llm.seen[-1][-1]["content"]
+
+
+def test_answer_without_skill_filter_is_not_revised(toolbox):
+    llm = ScriptedLLM([[call("search_candidates", {"query": "accountant"})], "R10001 and R10003 look good."])
+    r = run_agent("x", llm, toolbox, "m")
+    assert r.final_answer == "R10001 and R10003 look good." and not any(s.kind == "revision" for s in r.steps)
+
+
+def test_unparseable_model_output_is_retried(toolbox):
+    from talentlens.llm.client import LLMError
+    err = LLMError('HTTP 400: {"error":{"message":"Parsing failed. The model generated output that could not be parsed.",'
+                   '"code":"output_parse_failed"}}')
+    r = run_agent("x", ScriptedLLM([err, "Recovered answer."]), toolbox, "m")
+    assert r.stopped_reason == "final_answer"

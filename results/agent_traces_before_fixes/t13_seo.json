@@ -1,0 +1,78 @@
+{
+  "task": {
+    "id": "t13_seo",
+    "request": "Who are the best SEO specialists for a digital marketing role? Top 3.",
+    "checks": {
+      "tools_called": [
+        "search_candidates"
+      ],
+      "min_ids": 3,
+      "ids_satisfy": {
+        "skills": [
+          "Search Engine Optimization"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Who are the best SEO specialists for a digital marketing role? Top 3.",
+    "final_answer": "Top 3 SEO/digital marketing candidates:\n\n1. **R20628003** \u2014 Score 0.986, 7.5 yrs, Digital Marketing Specialist (DIGITAL-MEDIA). Strongest overall match.\n2. **R47996197** \u2014 Score 0.958, 9.3 yrs, Digital Marketing Specialist (HEALTHCARE). Solid match with more experience.\n3. **R18488289** \u2014 Score 0.952, 11 yrs, Senior Digital Marketing Specialist (DIGITAL-MEDIA). Most senior of the three.\n\nNote: none of these have a location on file, and no hard requirements were specified, so ranking is by relevance score. Want me to pull a detailed fit breakdown (explain_match) or draft outreach for any of them?",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "error",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "invalid tool call: HTTP 400: {\"error\":{\"message\":\"tool call validation failed: parameters for tool search_candidates did not match schema: errors: [missing properties: 'query']\",\"type\":\"invalid_request_error\",\"code\":\"tool_use_failed\",\"failed_generation\":\"\\u003ctool_cal",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"SEO specialist for a digital marketing role\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [], \"candidates\": [{\"candidate_id\": \"R20628003\", \"score\": 0.986, \"category\": \"DIGITAL-MEDIA\", \"years_experience\": 7.5, \"latest_titles\": [\"Digital Marketing Specialist\"], \"location\": null, \"required_matched\": [], \"required_missing\": []}, {\"candidate_id\": \"R47996197\", \"score\": 0.958, \"category\": \"HEALTHCARE\", \"years_experience\": 9.3, \"latest_titles\": [\"Digital Marketing Speciali",
+        "error": null,
+        "input_tokens": 1152,
+        "output_tokens": 46,
+        "latency_ms": 18682.275799998024
+      },
+      {
+        "step": 3,
+        "kind": "tool_call",
+        "tool": "compare_candidates",
+        "arguments": "{\"candidate_ids\":[\"R20628003\",\"R47996197\",\"R18488289\"]}",
+        "result": "{\"ranked\": [{\"candidate_id\": \"R20628003\", \"score\": 0.986, \"category\": \"DIGITAL-MEDIA\", \"years_experience\": 7.5, \"latest_titles\": [\"Digital Marketing Specialist\"], \"location\": null, \"required_matched\": [], \"required_missing\": []}, {\"candidate_id\": \"R47996197\", \"score\": 0.958, \"category\": \"HEALTHCARE\", \"years_experience\": 9.3, \"latest_titles\": [\"Digital Marketing Specialist\"], \"location\": null, \"req",
+        "error": null,
+        "input_tokens": 1915,
+        "output_tokens": 60,
+        "latency_ms": 2471.937100002833
+      },
+      {
+        "step": 4,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "Top 3 SEO/digital marketing candidates:\n\n1. **R20628003** \u2014 Score 0.986, 7.5 yrs, Digital Marketing Specialist (DIGITAL-MEDIA). Strongest overall match.\n2. **R47996197** \u2014 Score 0.958, 9.3 yrs, Digital Marketing Specialist (HEALTHCARE). Solid match with more experience.\n3. **R18488289** \u2014 Score 0.952, 11 yrs, Senior Digital Marketing Specialist (DIGITAL-MEDIA). Most senior of the three.\n\nNote: none of these have a location on file, and no hard requirements were specified, so ranking is by releva",
+        "error": null,
+        "input_tokens": 2203,
+        "output_tokens": 187,
+        "latency_ms": 39572.12979999895
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 3,
+    "input_tokens": 5270,
+    "output_tokens": 293,
+    "cost_usd": 0.0,
+    "models_used": [
+      "qwen/qwen3.8-27b"
+    ],
+    "tool_call_count": 2
+  },
+  "failures": []
+}

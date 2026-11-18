@@ -1,0 +1,89 @@
+{
+  "task": {
+    "id": "t12_pilots_faa",
+    "request": "Find 3 pilots with FAA certification.",
+    "checks": {
+      "tools_called": [
+        "search_candidates"
+      ],
+      "min_ids": 3,
+      "ids_satisfy": {
+        "skills": [
+          "FAA"
+        ]
+      }
+    }
+  },
+  "result": {
+    "request": "Find 3 pilots with FAA certification.",
+    "final_answer": "Here are the 3 best FAA-certified candidates (all in the AVIATION category, FAA certification matched, no missing requirements):\n\n1. **R27502951** \u2014 16.2 yrs experience, senior; top match (score 0.80).\n2. **R10176815** \u2014 17.4 yrs experience, senior (score 0.66).\n3. **R82738323** \u2014 10.0 yrs experience, senior (score 0.56).\n\nNote: none of these resumes list a location, so location fit is unknown. No outreach drafts were created.",
+    "stopped_reason": "final_answer",
+    "steps": [
+      {
+        "step": 1,
+        "kind": "tool_call",
+        "tool": "search_candidates",
+        "arguments": "{\"query\":\"FAA certified pilot\",\"top_k\":10}",
+        "result": "{\"job_requirements\": [\"FAA certification\"], \"candidates\": [{\"candidate_id\": \"R27502951\", \"score\": 0.802, \"category\": \"AVIATION\", \"years_experience\": 16.2, \"latest_titles\": [\"International Certification Program Management\"], \"location\": null, \"required_matched\": [\"FAA certification\"], \"required_missing\": []}, {\"candidate_id\": \"R10176815\", \"score\": 0.664, \"category\": \"AVIATION\", \"years_experience\": ",
+        "error": null,
+        "input_tokens": 1025,
+        "output_tokens": 43,
+        "latency_ms": 18093.374000003678
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R27502951\"}",
+        "result": "{\"score\": 0.8024, \"required_skills\": {\"matched\": [\"FAA certification\"], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"senior\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 1816,
+        "output_tokens": 108,
+        "latency_ms": 11747.324099997059
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R10176815\"}",
+        "result": "{\"score\": 0.6644, \"required_skills\": {\"matched\": [\"FAA certification\"], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"senior\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 11715.757499994652
+      },
+      {
+        "step": 2,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R82738323\"}",
+        "result": "{\"score\": 0.5639, \"required_skills\": {\"matched\": [\"FAA certification\"], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"senior\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 11672.276999997848
+      },
+      {
+        "step": 3,
+        "kind": "final",
+        "tool": null,
+        "arguments": null,
+        "result": "Here are the 3 best FAA-certified candidates (all in the AVIATION category, FAA certification matched, no missing requirements):\n\n1. **R27502951** \u2014 16.2 yrs experience, senior; top match (score 0.80).\n2. **R10176815** \u2014 17.4 yrs experience, senior (score 0.66).\n3. **R82738323** \u2014 10.0 yrs experience, senior (score 0.56).\n\nNote: none of these resumes list a location, so location fit is unknown. No outreach drafts were created.",
+        "error": null,
+        "input_tokens": 2263,
+        "output_tokens": 150,
+        "latency_ms": 28652.303499999107
+      }
+    ],
+    "drafts": [],
+    "llm_calls": 3,
+    "input_tokens": 5104,
+    "output_tokens": 301,
+    "cost_usd": 0.0,
+    "models_used": [
+      "qwen/qwen3.8-27b"
+    ],
+    "tool_call_count": 4
+  },
+  "failures": []
+}

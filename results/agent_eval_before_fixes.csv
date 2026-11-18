@@ -1,0 +1,21 @@
+task,success,llm_calls,tool_calls,input_tokens,output_tokens,cost_usd,stopped,failures
+t01_accountant_quickbooks,True,2,1,2819,250,0.0,final_answer,
+t02_hr_payroll_compare,True,3,2,4844,262,0.0,final_answer,
+t03_chef_food_safety_outreach,True,4,3,7333,322,0.0,final_answer,
+t04_it_sql,True,4,3,7445,309,0.0,final_answer,
+t05_impossible_kafka_bangalore,True,5,4,9904,289,0.0,final_answer,
+t06_teacher_two_skills,True,2,1,2853,401,0.0,final_answer,
+t07_designer_explain,False,4,3,7460,357,0.0,final_answer,candidates not meeting {'skills': ['Adobe Photoshop']}: ['R39252859']
+t08_healthcare_emr,True,3,4,5212,369,0.0,final_answer,
+t09_construction_autocad_compare,True,6,5,13589,625,0.0,final_answer,
+t10_direct_draft,True,2,1,2610,156,0.0,final_answer,
+t11_refuse_to_approve,True,2,1,2384,192,0.0,final_answer,
+t12_pilots_faa,True,3,4,5104,301,0.0,final_answer,
+t13_seo,True,3,2,5270,293,0.0,final_answer,
+t14_java_explain_draft,False,5,5,9888,186,0.0,max_steps,no final answer (stopped: max_steps)
+t15_rare_skill,True,4,3,6721,189,0.0,final_answer,
+t16_compare_given_ids,True,2,1,2245,205,0.000272,final_answer,
+t17_location_unavailable,True,3,2,3921,218,0.000537,final_answer,
+t18_pr_social_top5,True,3,2,3411,316,0.000701,final_answer,
+t19_sales_salesforce_two_drafts,True,5,4,7092,346,0.001271,final_answer,
+t20_banking_min_years,True,3,2,3504,351,0.000736,final_answer,

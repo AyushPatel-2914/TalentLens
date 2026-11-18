@@ -17,7 +17,7 @@ Every number in this README is produced by a script and saved under [`results/`]
 | **Data** | 2,481 public Kaggle resumes (24 occupations) and 3,000 LinkedIn job postings, with contact details removed |
 | **Pipeline** | BM25 + dense embeddings → Reciprocal Rank Fusion → cross-encoder re-ranker → requirement checks → verified explanations |
 | **Agent** | A hand-written tool-calling loop (5 tools, max 8 steps); outreach drafts wait for human approval |
-| **Checks** | Retrieval metrics (Recall@100, nDCG@10, MRR), LLM-judge agreement (Cohen's κ), extraction P/R/F1, counterfactual fairness and a 20-task agent evaluation; 143 tests run in CI |
+| **Checks** | Retrieval metrics (Recall@100, nDCG@10, MRR), LLM-judge agreement (Cohen's κ), extraction P/R/F1, counterfactual fairness and a 20-task agent evaluation; 150 tests run in CI |
 | **Cost** | Runs entirely on free tiers: Groq's free LLM API, CPU models, Vercel, a Cloudflare tunnel and free Colab for fine-tuning |
 
 ---
@@ -30,10 +30,10 @@ Every number in this README is produced by a script and saved under [`results/`]
 | 2. Extraction (LLM + rule-based) | ✅ | ✅ | 🟡 rules: all 2,481 resumes; LLM: gold set (120b 100/100) | 100 hand labels for accuracy |
 | 3. Ground truth (splits, pools, judge) | ✅ | ✅ | 🟡 splits + 3,010 pooled pairs ([`splits.json`](results/splits.json)) | 200 hand labels, then the judge |
 | 4. Hybrid retrieval + evaluation | ✅ | ✅ | 🟡 proxy metrics on 459 test jobs ([`retrieval.md`](results/retrieval.md)) | human labels for the trusted metrics |
-| 5. Cross-encoder re-ranker | ✅ (+ Colab notebook) | ✅ (notebook smoke-tested) | 🟡 base re-ranker on proxy labels ([`ablation.md`](results/ablation.md)) | judge labels → export → Colab → HF Hub |
+| 5. Cross-encoder re-ranker | ✅ (+ Colab notebook) | ✅ (notebook smoke-tested) | ✅ fine-tuned on weak labels: proxy nDCG@10 0.387 → 0.831 ([`ablation.md`](results/ablation.md)) | score on human labels |
 | 6. Explainable matches | ✅ | ✅ | 🟡 quote verification works live | labels for weight tuning; quote-failure run |
-| 7. Recruiter agent | ✅ | ✅ | ✅ 18/20 tasks (90%) ([`agent_eval.md`](results/agent_eval.md)) | fixes for the 2 failure modes |
-| 8. Fairness check | ✅ | ✅ | ✅ [`fairness_report.md`](results/fairness_report.md) | re-run with the fine-tuned re-ranker |
+| 7. Recruiter agent | ✅ | ✅ | ✅ 19/20 tasks (95%; v1 was 90%) ([`agent_eval.md`](results/agent_eval.md)) | – |
+| 8. Fairness check | ✅ | ✅ | ✅ fine-tuned: mean rank shift 1.72 → 0.92, 0 after redaction ([`fairness_report.md`](results/fairness_report.md)) | – |
 | 9. API + frontend + tests | ✅ | ✅ 143 tests | ✅ live demo ([`docs/DEMO.md`](docs/DEMO.md)) | screenshots |
 | 10. Docker, CI, deploy | ✅ | CI + Docker image tested locally | ✅ frontend on Vercel; backend through a Cloudflare tunnel ([docs/DEPLOY.md](docs/DEPLOY.md)) | always-on backend (paid option ready) |
 
@@ -214,7 +214,7 @@ A finding from the data: 93% of resumes contain the placeholder `City , State`, 
 
 The judge labels the other ~3,000 pairs **only if weighted κ ≥ 0.6** ("substantial" on the Landis & Koch scale). The script refuses otherwise.
 
-**Circularity guard:** the re-ranker is trained on judge labels, so test metrics are always reported twice: on judge labels (large) and on **your** labels only (small, trusted).
+**Circularity guard:** the re-ranker is trained on weak (category) or judge labels, never on yours, so test metrics are reported on the training-style labels (large, optimistic) and on **your** labels only (small, trusted).
 
 ### 4.4 Stage one: hybrid retrieval (Stage 4)
 
@@ -253,7 +253,11 @@ B wins: being found by **both** methods beats being first in one. **k** controls
 The cross-encoder reads 512 tokens for job + resume together; [`pair_texts`](src/talentlens/rerank/cross_encoder.py) builds that input (job title + first 150 words; first 350 words of the resume), and the **same function** builds the training data.
 
 **Fine-tuning** ([`notebooks/finetune_reranker.ipynb`](notebooks/finetune_reranker.ipynb), free Colab T4):
-- **Data:** judge-labelled TRAIN pairs. Your labels are all in test and are never trained on.
+- **Data:** TRAIN-split pairs only. Your labels are all in test and are never trained on. Two label sources:
+  - **Weak labels (used first, free):** `05_export_training_data.py --labels category` takes the hybrid top 10 for each of the 2,102 train jobs. A resume is labelled 2 if its occupation category equals the job's, else 0. That gives 21,020 pairs (9,358 positive, 11,662 hard negatives), plus 4,390 validation pairs ([`training_data.json`](results/training_data.json)).
+    - *Why:* judging one pair costs about 3k tokens. The free tier allows about 200k tokens per model per day, so about 65 judged pairs a day, which makes judging 1,750 train pairs a month-long job.
+    - *Caveat:* the labels are noisy, since a same-category resume can still be a weak fit. A model trained on them will look good on category labels *by construction*, so the honest test is **your human labels**.
+  - **Judge labels:** used once the judge passes the κ check, for as many pairs as the quota allows.
 - **Loss:** binary cross-entropy with soft targets (0 → 0.0, 1 → 0.5, 2 → 1.0). It keeps the "partial" signal, and it's stable on a small dataset. Listwise LambdaLoss is a future experiment.
 - **Hard negatives:** already in the pools. Pairs found by BM25/dense top-20 that were labelled 0 look relevant but aren't, which teaches fine distinctions. Unlabelled resumes are *not* used as negatives (some are real matches nobody labelled).
 - **LR 2e-5, 10% warm-up, ≤ 4 epochs, early stopping (patience 1) on validation nDCG@10.** The best checkpoint is kept. If fine-tuning never beats the base model on validation, the notebook says so and nothing is pushed.
@@ -400,45 +404,64 @@ With the re-ranker, first 50 test jobs ([`ablation.md`](results/ablation.md)):
 
 | Method | Recall@100 | nDCG@10 | MRR | Latency (ms, mean) |
 |---|---|---|---|---|
-| BM25 | 0.226 | 0.354 | 0.529 | 4 |
-| Dense | 0.304 | **0.445** | 0.590 | 152 |
-| Hybrid | 0.291 | 0.428 | **0.602** | 133 |
+| BM25 | 0.226 | 0.354 | 0.529 | 11 |
+| Dense | 0.304 | 0.445 | 0.590 | 262 |
+| Hybrid | 0.291 | 0.428 | 0.602 | 184 |
 | Hybrid + bge-reranker-base (top 100) | 0.291 | 0.387 | 0.532 | 55,611 |
-| Hybrid + fine-tuned reranker | – | – | – | – |
+| Hybrid + fine-tuned reranker (top 100) ⚠️ | 0.291 | **0.831** | **0.922** | 54,695 |
+
+⚠️ The fine-tuned model was **trained on category labels** (train/validation jobs only, so there is no job leakage), and this table also scores with category labels. The jump from 0.428 to 0.831 shows the model learned the proxy rule "same occupation = match" and applies it to unseen jobs. It does **not** yet show that it ranks *good fits* better. That answer comes from the human-labelled test pairs. First-stage latencies differ from section 6.5 because this run shared the CPU; the base re-ranker row is reused from the earlier run (`--skip-base`).
 
 **What this shows:**
 - **Recall:** BM25 finds the fewest same-occupation resumes. Dense embeddings capture "what kind of job" better than word overlap.
 - **The off-the-shelf cross-encoder makes the ranking *worse* on this proxy** (nDCG@10 0.428 → 0.387). It was trained on web search relevance, not on job–resume fit, and it reads only the first ~350 words of each resume. This is the reason for Stage 5: fine-tuning on job–resume labels.
+- **Fine-tuning (4 epochs, Colab T4, about 12 min per epoch) fixes the proxy gap:** validation nDCG@10 went from 0.788 (base) to 0.977 ([`finetune_training.json`](results/finetune_training.json)), and test nDCG@10 from 0.387 (base) to 0.831. Both are on weak labels, so treat them as an upper bound until the human-label row exists.
 - **It is also slow on CPU:** about 56 s to re-rank 100 candidates. That's why the API re-ranks only the top 30, and why the final score also uses requirement checks, not only the re-ranker.
 
 ### 6.6 Explanations — –
 ### 6.7 Agent ([`agent_eval.md`](results/agent_eval.md), traces in [`agent_traces/`](results/agent_traces/))
 
-All 20 scripted tasks, model `qwen/qwen3.8-27b` on Groq's free tier, re-ranker on, max 8 steps:
+All 20 scripted tasks on Groq's free tier (`qwen/qwen3.8-27b`, falling back to `gpt-oss-120b` / `gpt-oss-20b`), re-ranker on, max 8 steps. Both runs are kept; the second doesn't replace the first.
 
-| Success rate | Avg LLM calls | Avg tool calls | Avg tokens per task | Avg cost per task |
-|---|---|---|---|---|
-| **90% (18/20)** | 3.4 | 2.65 | 5,977 | $0.0002 (unverified prices) |
+| Run | Success rate | Avg LLM calls | Avg tool calls | Avg tokens per task | Avg cost per task |
+|---|---|---|---|---|---|
+| v1 ([`agent_eval_before_fixes.md`](results/agent_eval_before_fixes.md)) | 90% (18/20) | 3.4 | 2.65 | 5,977 | $0.0002 |
+| v2, after fixing the v1 failure modes ([`agent_eval.md`](results/agent_eval.md)) | **95% (19/20)** | 3.3 | 2.55 | 5,442 | $0.0001 |
+
+Costs use unverified list prices; on the free tier they are $0.
 
 Passed, among others: the impossible request (Kafka in Bangalore: the agent says no one matches instead of inventing candidates), refusing to "approve and send" (it has no tool for that), comparing given IDs, two drafts in one request, and minimum-years filters.
 
-**The two failures, from the traces:**
-- **`t07_designer_explain`** (factual error): the top match and its explanation were correct. Its final answer, however, listed an extra candidate as "Photoshop-verified" whose resume doesn't mention Photoshop. This is the kind of claim the automatic checks exist to catch.
-- **`t14_java_explain_draft`** (reliability): Groq rejected 3 of the model's tool calls as malformed (`tool call validation failed`, once with an invented tool name). Each rejection used a step, so the agent reached the 8-step limit right after drafting, before writing its final answer.
+**v1 failures, from the traces:**
+- **`t07_designer_explain`** (unsupported claim): the top match and its explanation were correct, but the final answer also listed an extra candidate as "Photoshop-verified" whose resume doesn't mention Photoshop.
+- **`t14_java_explain_draft`** (reliability): Groq rejected 3 of the model's tool calls as malformed (`tool call validation failed`, once with an invented tool name). Each rejection used a step, so the agent hit the 8-step limit before writing its final answer.
 
-**Fixes not yet applied:** after repeated provider-side validation errors, switch to the fallback model, and don't count those rejections toward the step limit; check every candidate ID the final answer names against the tool results. The 20 tasks are the evaluation set, so after any fix, report the new rate next to this one, not instead of it.
-### 6.8 Fairness ([`fairness_report.md`](results/fairness_report.md), [`fairness_report_dense.md`](results/fairness_report_dense.md))
+**Fixes between v1 and v2** (general mechanisms, each with unit tests; no task-specific prompts):
+1. **Provider-rejected tool calls** no longer use up steps (at most 4 per run), and after 2 in a row the run continues on the fallback model.
+2. **Grounding check on the final answer:** if the agent applied a skill filter, any candidate the answer names who didn't pass that filter triggers one rewrite.
+
+**What v2 shows:**
+- `t07` passed. Its trace shows a model switch (qwen's daily quota ran out mid-evaluation) and no rewrite, so the pass can't be credited to fix 2 alone.
+- `t14` failed differently: after the same quota switch, `gpt-oss-120b` returned output Groq couldn't parse (`output_parse_failed`), and the loop treated that as fatal.
+- That error is now retried like a rejected tool call (unit-tested). It has **not** been re-evaluated, to avoid tuning repeatedly against the 20 evaluation tasks.
+### 6.8 Fairness ([`fairness_report.md`](results/fairness_report.md) fine-tuned, [`fairness_report_base_reranker.md`](results/fairness_report_base_reranker.md) base, [`fairness_report_dense.md`](results/fairness_report_dense.md))
 
 10 test jobs × top-20 candidates = 200 slots × 10 name groups = 2,000 counterfactuals per condition.
 
-| Scorer | Condition | Mean abs rank shift | % top-10 lists changed | Mean abs score diff |
-|---|---|---|---|---|
-| Final score (bge-reranker-base + requirement checks) | Before | 1.72 | 27.4% | 0.041 |
-| | After redaction | 0.00 | 0.0% | 0.000 |
-| Bi-encoder cosine (stage one) | Before | 3.36 | 44.0% | 0.017 |
-| | After redaction | 0.00 | 0.0% | 0.000 |
+| Scorer | Condition | Mean abs rank shift | % top-10 lists changed | Mean abs score diff | Max abs score diff |
+|---|---|---|---|---|---|
+| Final score (**fine-tuned** re-ranker + requirement checks) | Before | **0.92** | **19.2%** | 0.042 | 0.857 |
+| | After redaction | 0.00 | 0.0% | 0.000 | 0.000 |
+| Final score (bge-reranker-base + requirement checks) | Before | 1.72 | 27.4% | 0.041 | 0.399 |
+| | After redaction | 0.00 | 0.0% | 0.000 | 0.000 |
+| Bi-encoder cosine (stage one) | Before | 3.36 | 44.0% | 0.017 | – |
+| | After redaction | 0.00 | 0.0% | 0.000 | – |
 
-Every group's mean score moved down (final score: −0.026 to −0.040), so most of the effect is *a name being present at all* (it pushes job-relevant text further into the model's input), and the gap between groups is small. Still, a name alone reorders a quarter of top-10 lists, which is why the system redacts identity before scoring. Zero after redaction is expected by construction; see the limits in section 4.8. These runs used the base re-ranker and heuristic job requirements; they will be re-run with the fine-tuned model.
+**Base re-ranker:** every group's mean score moved down (−0.026 to −0.040), so most of the effect was *a name being present at all* (it pushes job-relevant text further into the model's input), and the gap between groups was small.
+
+**Fine-tuned re-ranker:** names move rankings **less on average** (mean rank shift 1.72 → 0.92; top-10 lists changed 27.4% → 19.2%), but the **worst case is larger** (max score difference 0.40 → 0.86), and the direction now differs by group. East Asian names were pushed down the most (male −0.026, female −0.013 mean score, about +0.5 / +0.4 rank), while Hispanic and Indian names moved slightly up (+0.005). Fine-tuning reduced the average sensitivity and introduced a group-specific pattern, which is a reason to keep redaction on by default rather than trust the model.
+
+Zero after redaction is expected by construction; see the limits in section 4.8. 200 slots is a small sample, so the per-group differences are indicative, not statistically established.
 
 ### 6.9 Rule-based extraction ([`rules_extraction.json`](results/rules_extraction.json))
 
@@ -703,7 +726,7 @@ Everything tunable lives in [`configs/config.yaml`](configs/config.yaml); code r
 | `retrieval.dense.chunk_words` / `chunk_overlap` | 300 / 50 | Fits the 512-token limit; overlap keeps sentences whole |
 | `rerank.base_model` | `BAAI/bge-reranker-base` | Strong open cross-encoder that runs on CPU |
 | `rerank.depth` / `interactive_depth` | 100 / 30 | Full depth for evaluation; 30 for the API (about 0.5 s per pair on CPU) |
-| `rerank.finetuned_model` | `null` | Set to the Hugging Face Hub id after Stage 5 |
+| `rerank.finetuned_model` | `Anakin2914/talentlens-reranker` | Private HF repo, so it needs `HF_TOKEN`; set it to `null` to use the base model |
 | `scoring.weights` | re-ranker 0.6, required skills 0.3, experience 0.1 | Defaults; `06_explanations.py --tune` grid-searches them on validation |
 | `agent.model` / `fallback_models` | `qwen/qwen3.8-27b` / `gpt-oss-120b`, `gpt-oss-20b` | Per-model free quotas |
 | `agent.max_steps` | 8 | Hard stop on loops and cost |

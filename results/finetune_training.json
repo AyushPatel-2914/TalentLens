@@ -1,0 +1,17 @@
+{
+  "source": "Printed by notebooks/finetune_reranker.ipynb on Google Colab (T4 GPU), 2026-11-17; copied verbatim.",
+  "training_labels": "category weak labels (scripts/05_export_training_data.py --labels category); validation nDCG is on the same kind of labels, so it is optimistic",
+  "data": {"train": {"pairs": 21020, "jobs": 2102}, "validation": {"pairs": 4390, "jobs": 439}},
+  "config": {"base_model": "BAAI/bge-reranker-base", "lr": 2e-05, "epochs": 4, "batch_size": 16, "warmup_ratio": 0.1,
+             "weight_decay": 0.01, "max_length": 512, "patience": 1, "seed": 42, "hub_repo": "Anakin2914/talentlens-reranker"},
+  "epochs": [
+    {"epoch": 1, "train_loss": 0.41374442564034664, "validation_ndcg@10": 0.9627162842810603, "seconds": 731.5},
+    {"epoch": 2, "train_loss": 0.1548291917262044, "validation_ndcg@10": 0.9743417602464622, "seconds": 724.5},
+    {"epoch": 3, "train_loss": 0.08488263210798344, "validation_ndcg@10": 0.9747341979387281, "seconds": 718.7},
+    {"epoch": 4, "train_loss": 0.04783200648400935, "validation_ndcg@10": 0.9774457668684484, "seconds": 712.3}
+  ],
+  "validation_ndcg@10_before_training": 0.7880547463034543,
+  "best_epoch": 4,
+  "best_validation_ndcg@10": 0.9774457668684484,
+  "hub_commit": "df47a4f512861af694fb81fff180610013bf0232"
+}

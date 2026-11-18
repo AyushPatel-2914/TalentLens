@@ -26,7 +26,7 @@
         "error": null,
         "input_tokens": 1023,
         "output_tokens": 41,
-        "latency_ms": 17894.253899998148
+        "latency_ms": 17.423500001314096
       },
       {
         "step": 2,
@@ -37,7 +37,7 @@
         "error": null,
         "input_tokens": 1796,
         "output_tokens": 30,
-        "latency_ms": 2247.546600003261
+        "latency_ms": 1282.4814999985392
       },
       {
         "step": 3,
@@ -48,7 +48,7 @@
         "error": null,
         "input_tokens": 1875,
         "output_tokens": 36,
-        "latency_ms": 39598.28550000384
+        "latency_ms": 508.3350999993854
       },
       {
         "step": 4,
@@ -59,7 +59,7 @@
         "error": null,
         "input_tokens": 2027,
         "output_tokens": 82,
-        "latency_ms": 1661.1902000004193
+        "latency_ms": 20.96420000452781
       }
     ],
     "drafts": [],

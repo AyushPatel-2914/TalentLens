@@ -17,7 +17,7 @@
   },
   "result": {
     "request": "Find construction candidates with AutoCAD and compare the top 3.",
-    "final_answer": "Top 3 construction candidates with AutoCAD:\n\n1. **R23818675** \u2014 Cad/Gis Design Specialist, 26.7 yrs, AutoCAD \u2713 (score 0.441)\n2. **R99433371** \u2014 Construction, 16.3 yrs, AutoCAD \u2713 (score 0.438)\n3. **R39674782** \u2014 Construction Development Consultant, 12.6 yrs, AutoCAD \u2713 (score 0.435)\n\nAll three are in the CONSTRUCTION category and match the required AutoCAD skill. No location data is available for any of them. No outreach drafts are pending.",
+    "final_answer": "- **R23818675** \u2013 Construction specialist, 26.7\u202fyears experience, Cad/GIS Design Specialist, matches AutoCAD.  \n- **R99433371** \u2013 Construction background, 16.3\u202fyears experience, recent role \u201cConstruction\u201d, matches AutoCAD.  \n- **R39674782** \u2013 Construction Development Consultant, 12.6\u202fyears experience, matches AutoCAD.  \n\nNo outreach drafts have been created yet.",
     "stopped_reason": "final_answer",
     "steps": [
       {
@@ -29,7 +29,7 @@
         "error": null,
         "input_tokens": 1030,
         "output_tokens": 44,
-        "latency_ms": 17264.672299992526
+        "latency_ms": 12.156700002378784
       },
       {
         "step": 2,
@@ -40,7 +40,7 @@
         "error": null,
         "input_tokens": 1802,
         "output_tokens": 41,
-        "latency_ms": 15409.327399996982
+        "latency_ms": 1195.8785999959218
       },
       {
         "step": 3,
@@ -51,7 +51,7 @@
         "error": null,
         "input_tokens": 2147,
         "output_tokens": 43,
-        "latency_ms": 16511.30949999788
+        "latency_ms": 191.23759999638423
       },
       {
         "step": 4,
@@ -62,49 +62,50 @@
         "error": null,
         "input_tokens": 2482,
         "output_tokens": 280,
-        "latency_ms": 12168.074600005639
+        "latency_ms": 98.668099999486
       },
       {
         "step": 5,
-        "kind": "error",
+        "kind": "model_switch",
         "tool": null,
         "arguments": null,
         "result": null,
-        "error": "invalid tool call: HTTP 400: {\"error\":{\"message\":\"tool call validation failed: parameters for tool compare_candidates did not match schema: errors: [missing properties: 'candidate_ids']\",\"type\":\"invalid_request_error\",\"code\":\"tool_use_failed\",\"failed_generation\":\"\\u003",
+        "error": "qwen/qwen3.8-27b quota exhausted -> openai/gpt-oss-120b",
         "input_tokens": 0,
         "output_tokens": 0,
         "latency_ms": 0.0
       },
       {
-        "step": 6,
+        "step": 5,
         "kind": "tool_call",
         "tool": "compare_candidates",
         "arguments": "{\"candidate_ids\":[\"R23818675\",\"R99433371\",\"R39674782\"]}",
         "result": "{\"ranked\": [{\"candidate_id\": \"R23818675\", \"score\": 0.441, \"category\": \"CONSTRUCTION\", \"years_experience\": 26.7, \"latest_titles\": [\"Cad/Gis Design Specialist\"], \"location\": null, \"required_matched\": [\"AutoCAD\"], \"required_missing\": []}, {\"candidate_id\": \"R99433371\", \"score\": 0.438, \"category\": \"CONSTRUCTION\", \"years_experience\": 16.3, \"latest_titles\": [\"Construction\"], \"location\": null, \"required_m",
         "error": null,
-        "input_tokens": 2918,
-        "output_tokens": 60,
-        "latency_ms": 2962.251999997534
+        "input_tokens": 1903,
+        "output_tokens": 117,
+        "latency_ms": 1750.0850999931572
       },
       {
-        "step": 7,
+        "step": 6,
         "kind": "final",
         "tool": null,
         "arguments": null,
-        "result": "Top 3 construction candidates with AutoCAD:\n\n1. **R23818675** \u2014 Cad/Gis Design Specialist, 26.7 yrs, AutoCAD \u2713 (score 0.441)\n2. **R99433371** \u2014 Construction, 16.3 yrs, AutoCAD \u2713 (score 0.438)\n3. **R39674782** \u2014 Construction Development Consultant, 12.6 yrs, AutoCAD \u2713 (score 0.435)\n\nAll three are in the CONSTRUCTION category and match the required AutoCAD skill. No location data is available for any of them. No outreach drafts are pending.",
+        "result": "- **R23818675** \u2013 Construction specialist, 26.7\u202fyears experience, Cad/GIS Design Specialist, matches AutoCAD.  \n- **R99433371** \u2013 Construction background, 16.3\u202fyears experience, recent role \u201cConstruction\u201d, matches AutoCAD.  \n- **R39674782** \u2013 Construction Development Consultant, 12.6\u202fyears experience, matches AutoCAD.  \n\nNo outreach drafts have been created yet.",
         "error": null,
-        "input_tokens": 3210,
-        "output_tokens": 157,
-        "latency_ms": 28406.450699993
+        "input_tokens": 2140,
+        "output_tokens": 96,
+        "latency_ms": 532.4091000002227
       }
     ],
     "drafts": [],
     "llm_calls": 6,
-    "input_tokens": 13589,
-    "output_tokens": 625,
-    "cost_usd": 0.0,
+    "input_tokens": 11504,
+    "output_tokens": 621,
+    "cost_usd": 0.0007342500000000001,
     "models_used": [
-      "qwen/qwen3.8-27b"
+      "qwen/qwen3.8-27b",
+      "openai/gpt-oss-120b"
     ],
     "tool_call_count": 5
   },

@@ -36,9 +36,16 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
 
 class Reranker:
     def __init__(self, model_name: str, max_length: int = 512, batch_size: int = 16, device: str | None = None):
+        import os
+
         import torch
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+        if not os.environ.get("HF_TOKEN"):  # the fine-tuned model is a private Hub repo: pick up the token from .env
+            from dotenv import load_dotenv
+
+            from talentlens.config import ROOT
+            load_dotenv(ROOT / ".env")
         self.torch = torch
         self.model_name = model_name
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")

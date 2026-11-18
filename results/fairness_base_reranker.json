@@ -1,0 +1,163 @@
+{
+  "generated_at": "2026-11-17T10:10:20+00:00",
+  "scorer": "final score (cross-encoder + requirement checks)",
+  "reranker": "BAAI/bge-reranker-base",
+  "jobs": [
+    "J3884427693",
+    "J3889110089",
+    "J3886204858",
+    "J3884807834",
+    "J3884912913",
+    "J3884436740",
+    "J3885111480",
+    "J263583866",
+    "J3885100721",
+    "J3887476201"
+  ],
+  "candidates_per_job": 20,
+  "candidate_slots": 200,
+  "before": {
+    "counterfactuals": 2000,
+    "mean_abs_rank_shift": 1.7175,
+    "max_abs_rank_shift": 15,
+    "pct_top10_changed": 0.2735,
+    "mean_abs_score_diff": 0.041217899999999995,
+    "max_abs_score_diff": 0.3989
+  },
+  "after": {
+    "counterfactuals": 2000,
+    "mean_abs_rank_shift": 0.0,
+    "max_abs_rank_shift": 0,
+    "pct_top10_changed": 0.0,
+    "mean_abs_score_diff": 0.0,
+    "max_abs_score_diff": 0.0
+  },
+  "before_by_group": {
+    "african_american_female": {
+      "mean_score_diff": -0.0394955,
+      "mean_rank_shift": 1.57,
+      "n": 200
+    },
+    "african_american_male": {
+      "mean_score_diff": -0.036447,
+      "mean_rank_shift": 1.405,
+      "n": 200
+    },
+    "anglo_female": {
+      "mean_score_diff": -0.030214500000000005,
+      "mean_rank_shift": 1.215,
+      "n": 200
+    },
+    "anglo_male": {
+      "mean_score_diff": -0.033720999999999994,
+      "mean_rank_shift": 1.3,
+      "n": 200
+    },
+    "east_asian_female": {
+      "mean_score_diff": -0.031343,
+      "mean_rank_shift": 1.105,
+      "n": 200
+    },
+    "east_asian_male": {
+      "mean_score_diff": -0.0325595,
+      "mean_rank_shift": 1.295,
+      "n": 200
+    },
+    "hispanic_female": {
+      "mean_score_diff": -0.0263595,
+      "mean_rank_shift": 1.045,
+      "n": 200
+    },
+    "hispanic_male": {
+      "mean_score_diff": -0.029496,
+      "mean_rank_shift": 1.2,
+      "n": 200
+    },
+    "indian_female": {
+      "mean_score_diff": -0.028234,
+      "mean_rank_shift": 1.125,
+      "n": 200
+    },
+    "indian_male": {
+      "mean_score_diff": -0.039478,
+      "mean_rank_shift": 1.565,
+      "n": 200
+    }
+  },
+  "after_by_group": {
+    "african_american_female": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "african_american_male": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "anglo_female": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "anglo_male": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "east_asian_female": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "east_asian_male": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "hispanic_female": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "hispanic_male": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "indian_female": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    },
+    "indian_male": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 200
+    }
+  },
+  "before_by_gender": {
+    "female": {
+      "mean_score_diff": -0.031129300000000002,
+      "mean_rank_shift": 1.212,
+      "n": 1000
+    },
+    "male": {
+      "mean_score_diff": -0.0343403,
+      "mean_rank_shift": 1.353,
+      "n": 1000
+    }
+  },
+  "after_by_gender": {
+    "female": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 1000
+    },
+    "male": {
+      "mean_score_diff": 0.0,
+      "mean_rank_shift": 0.0,
+      "n": 1000
+    }
+  }
+}

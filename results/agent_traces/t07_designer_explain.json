@@ -17,7 +17,7 @@
   },
   "result": {
     "request": "Find a graphic designer who uses Adobe Photoshop and explain why the top match fits.",
-    "final_answer": "Top match: **R25061645** \u2014 Graphic Designer, 7.5 years experience, score 0.999.\n\nWhy they fit:\n- **Role match:** Latest title is \"Graphic Designer\" (category DESIGNER), directly matching the request.\n- **Skill:** Confirmed to have **Adobe Photoshop** (passed the hard skill filter).\n- **Experience:** 7.5 years \u2014 solid mid-to-senior level for a graphic design role.\n- **Score:** Highest overall match score (0.999) among the designer candidates.\n\nOther strong Photoshop-verified designers if you want alternatives:\n- **R39252859** \u2014 Creative Graphic Designer, 14 yrs\n- **R25422388** \u2014 Graphic Designer, 16.5 yrs\n- **R26496059** \u2014 Graphic Designer, 14.4 yrs\n\nNo outreach drafts are pending. Want me to draft an outreach email to R25061645?",
+    "final_answer": "- **R25061645** \u2013 Highest relevance score (0.999) among designers who list Adobe Photoshop; 7.5\u202fyears of graphic design experience.  \n\nNo outreach drafts are pending approval.",
     "stopped_reason": "final_answer",
     "steps": [
       {
@@ -29,7 +29,7 @@
         "error": null,
         "input_tokens": 1033,
         "output_tokens": 41,
-        "latency_ms": 19524.49940000224
+        "latency_ms": 11.78059999801917
       },
       {
         "step": 2,
@@ -40,53 +40,63 @@
         "error": null,
         "input_tokens": 1778,
         "output_tokens": 44,
-        "latency_ms": 12159.430800005794
+        "latency_ms": 165.028399998846
       },
       {
         "step": 3,
-        "kind": "error",
-        "tool": null,
-        "arguments": null,
-        "result": null,
-        "error": "invalid tool call: HTTP 400: {\"error\":{\"message\":\"tool call validation failed: parameters for tool explain_match did not match schema: errors: [missing properties: 'candidate_id']\",\"type\":\"invalid_request_error\",\"code\":\"tool_use_failed\",\"failed_generation\":\"\\u003ctool_",
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "latency_ms": 0.0
-      },
-      {
-        "step": 4,
         "kind": "tool_call",
         "tool": "explain_match",
         "arguments": "{\"candidate_id\":\"R25061645\"}",
         "result": "{\"score\": 0.9986, \"required_skills\": {\"matched\": [], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"senior\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
         "error": null,
-        "input_tokens": 2248,
-        "output_tokens": 40,
-        "latency_ms": 1034.207199998491
+        "input_tokens": 2136,
+        "output_tokens": 36,
+        "latency_ms": 742.8176999965217
+      },
+      {
+        "step": 4,
+        "kind": "tool_call",
+        "tool": "explain_match",
+        "arguments": "{\"candidate_id\":\"R39252859\"}",
+        "result": "{\"score\": 0.9947, \"required_skills\": {\"matched\": [], \"missing\": []}, \"nice_to_have_matched\": [], \"experience\": {\"fit\": 1.0, \"summary\": \"no minimum stated\"}, \"seniority\": {\"job\": \"unknown\", \"candidate\": \"senior\", \"fit\": \"unknown\"}, \"location\": {\"job\": null, \"candidate\": null, \"fit\": \"unknown\"}, \"evidence_quotes\": []}",
+        "error": null,
+        "input_tokens": 2289,
+        "output_tokens": 36,
+        "latency_ms": 694.06429999799
+      },
+      {
+        "step": 5,
+        "kind": "model_switch",
+        "tool": null,
+        "arguments": null,
+        "result": null,
+        "error": "qwen/qwen3.8-27b quota exhausted -> openai/gpt-oss-120b",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_ms": 0.0
       },
       {
         "step": 5,
         "kind": "final",
         "tool": null,
         "arguments": null,
-        "result": "Top match: **R25061645** \u2014 Graphic Designer, 7.5 years experience, score 0.999.\n\nWhy they fit:\n- **Role match:** Latest title is \"Graphic Designer\" (category DESIGNER), directly matching the request.\n- **Skill:** Confirmed to have **Adobe Photoshop** (passed the hard skill filter).\n- **Experience:** 7.5 years \u2014 solid mid-to-senior level for a graphic design role.\n- **Score:** Highest overall match score (0.999) among the designer candidates.\n\nOther strong Photoshop-verified designers if you want",
+        "result": "- **R25061645** \u2013 Highest relevance score (0.999) among designers who list Adobe Photoshop; 7.5\u202fyears of graphic design experience.  \n\nNo outreach drafts are pending approval.",
         "error": null,
-        "input_tokens": 2401,
-        "output_tokens": 232,
-        "latency_ms": 27420.698800000537
+        "input_tokens": 1766,
+        "output_tokens": 78,
+        "latency_ms": 57369.61240000528
       }
     ],
     "drafts": [],
-    "llm_calls": 4,
-    "input_tokens": 7460,
-    "output_tokens": 357,
-    "cost_usd": 0.0,
+    "llm_calls": 5,
+    "input_tokens": 9002,
+    "output_tokens": 235,
+    "cost_usd": 0.0003117,
     "models_used": [
-      "qwen/qwen3.8-27b"
+      "qwen/qwen3.8-27b",
+      "openai/gpt-oss-120b"
     ],
-    "tool_call_count": 3
+    "tool_call_count": 4
   },
-  "failures": [
-    "candidates not meeting {'skills': ['Adobe Photoshop']}: ['R39252859']"
-  ]
+  "failures": []
 }

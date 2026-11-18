@@ -39,7 +39,7 @@
         "error": null,
         "input_tokens": 637,
         "output_tokens": 44,
-        "latency_ms": 17922.416699999303
+        "latency_ms": 13635.640799999237
       },
       {
         "step": 2,
@@ -50,7 +50,7 @@
         "error": null,
         "input_tokens": 1322,
         "output_tokens": 88,
-        "latency_ms": 1302.6829000009457
+        "latency_ms": 23.072600000887178
       },
       {
         "step": 3,
@@ -61,14 +61,14 @@
         "error": null,
         "input_tokens": 1452,
         "output_tokens": 184,
-        "latency_ms": 718.8047000017832
+        "latency_ms": 12.218199997732881
       }
     ],
     "drafts": [],
     "llm_calls": 3,
     "input_tokens": 3411,
     "output_tokens": 316,
-    "cost_usd": 0.00070125,
+    "cost_usd": 0.0,
     "models_used": [
       "openai/gpt-oss-120b"
     ],
