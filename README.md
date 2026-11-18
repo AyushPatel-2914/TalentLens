@@ -594,7 +594,7 @@ python scripts/07_eval_agent.py
 python scripts/08_fairness.py
 
 # Tests
-pytest                                                    # 143 tests, no network/models/keys needed
+pytest                                                    # 150 tests, no network/models/keys needed
 
 # Run the app
 start_demo.cmd                                            # Windows: API + frontend + browser in one click
